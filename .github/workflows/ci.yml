@@ -26,7 +26,9 @@ jobs:
       - run: flutter test
 
   build-apk:
+    # Only build the APK on demand (tag or manual) — not every push. Final app build.
     needs: verify
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

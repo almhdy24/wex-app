@@ -23,3 +23,8 @@ final shopProvider = FutureProvider<Shop>((ref) async {
 
 final brandsProvider = FutureProvider((ref) => ref.read(catalogRepositoryProvider).brands());
 final categoriesProvider = FutureProvider((ref) => ref.read(catalogRepositoryProvider).categories());
+
+
+final ordersListProvider = FutureProvider.autoDispose((ref) => ref.read(orderRepositoryProvider).list());
+final orderDetailProvider = FutureProvider.autoDispose.family(
+    (ref, String number) => ref.read(orderRepositoryProvider).detail(number));
