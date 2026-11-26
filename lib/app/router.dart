@@ -7,6 +7,9 @@ import '../features/product/product_detail_screen.dart';
 import '../features/cart/cart_screen.dart';
 import '../features/checkout/checkout_screen.dart';
 import '../features/orders/order_detail_screen.dart';
+import '../features/notifications/notifications_screen.dart';
+import '../features/content/faq_screen.dart';
+import '../features/content/content_page_screen.dart';
 import '../features/orders/orders_screen.dart';
 import '../features/account/account_screen.dart';
 import '../features/auth/login_screen.dart';
@@ -46,6 +49,13 @@ GoRouter buildRouter() => GoRouter(
           path: '/orders/:number',
           parentNavigatorKey: _rootKey,
           builder: (c, s) => OrderDetailScreen(orderNumber: s.pathParameters['number']!),
+        ),
+        GoRoute(path: '/notifications', parentNavigatorKey: _rootKey, builder: (c, s) => const NotificationsScreen()),
+        GoRoute(path: '/faq', parentNavigatorKey: _rootKey, builder: (c, s) => const FaqScreen()),
+        GoRoute(
+          path: '/pages/:slug',
+          parentNavigatorKey: _rootKey,
+          builder: (c, s) => ContentPageScreen(slug: s.pathParameters['slug']!),
         ),
         GoRoute(path: '/login', parentNavigatorKey: _rootKey, builder: (c, s) => const LoginScreen()),
         GoRoute(
