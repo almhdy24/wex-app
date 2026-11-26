@@ -7,7 +7,7 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:106015853692:android:6de37eb1d6afb751da0df9",
+        "mobilesdk_app_id": "1:106015853692:android:d2772910013fcb90da0df9",
         "android_client_info": {
           "package_name": "com.wextechnology.wex_app"
         }
@@ -19,9 +19,7 @@
         }
       ],
       "api_key": [
-        {
-          "current_key": "AIzaSyBTlUq9YNR-hp-RkvKgHddpRV9L6-DDNAY"
-        }
+        { "current_key": "AIzaSyBTlUq9YNR-hp-RkvKgHddpRV9L6-DDNAY" }
       ],
       "services": {
         "appinvite_service": {
