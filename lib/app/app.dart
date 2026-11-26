@@ -5,7 +5,7 @@ import 'router.dart';
 
 class WexApp extends StatelessWidget {
   WexApp({super.key});
-  final _router = buildRouter();
+  final _router = appRouter;
 
   @override
   Widget build(BuildContext context) {

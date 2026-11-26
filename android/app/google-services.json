@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "106015853692",
+    "project_id": "com-almhdy24-nabd",
+    "storage_bucket": "com-almhdy24-nabd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:106015853692:android:6de37eb1d6afb751da0df9",
+        "android_client_info": {
+          "package_name": "com.wextechnology.wex_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "106015853692-ktr3bm0f597u8b7ad5dfimrps8ljna0t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBTlUq9YNR-hp-RkvKgHddpRV9L6-DDNAY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "106015853692-ktr3bm0f597u8b7ad5dfimrps8ljna0t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

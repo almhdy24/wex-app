@@ -8,6 +8,8 @@ import '../data/repositories/order_repository.dart';
 import '../data/repositories/me_repository.dart';
 import '../data/repositories/notification_repository.dart';
 import '../data/repositories/push_repository.dart';
+import '../features/push/push_service.dart';
+import 'router.dart';
 
 final productRepositoryProvider =
     Provider((ref) => ProductRepository(ref.read(serverTimeApiProvider)));
@@ -42,3 +44,16 @@ final faqProvider = FutureProvider.autoDispose((ref) => ref.read(contentReposito
 final pageProvider = FutureProvider.autoDispose.family((ref, String slug) => ref.read(contentRepositoryProvider).page(slug));
 
 final pushRepositoryProvider = Provider((ref) => PushRepository(ref.read(serverTimeApiProvider)));
+
+final pushServiceProvider = Provider((ref) => PushService(
+      ref.read(pushRepositoryProvider),
+      onOpen: (data) {
+        final url = data['url']?.toString();
+        final order = data['orderNumber']?.toString() ?? data['order_number']?.toString();
+        if (url != null && url.startsWith('/')) {
+          appRouter.go(url);
+        } else if (order != null && order.isNotEmpty) {
+          appRouter.go('/orders/$order');
+        }
+      },
+    ));

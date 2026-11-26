@@ -18,7 +18,9 @@ import '../features/auth/verify_screen.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
 
-GoRouter buildRouter() => GoRouter(
+final appRouter = _build();
+
+GoRouter _build() => GoRouter(
       navigatorKey: _rootKey,
       initialLocation: '/',
       routes: [
