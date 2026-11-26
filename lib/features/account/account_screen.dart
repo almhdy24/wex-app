@@ -36,6 +36,8 @@ class AccountScreen extends ConsumerWidget {
             const SizedBox(height: Sp.x6),
           ],
           _tile(Icons.notifications_outlined, 'الإشعارات', () => context.push('/notifications')),
+          if (auth.isAuthenticated)
+            _tile(Icons.notifications_active_outlined, 'إعدادات الإشعارات', () => context.push('/push-preferences')),
           _tile(Icons.help_outline, 'الأسئلة الشائعة', () => context.push('/faq')),
           _tile(Icons.description_outlined, 'الشروط والأحكام', () => context.push('/pages/terms')),
           _tile(Icons.privacy_tip_outlined, 'سياسة الخصوصية', () => context.push('/pages/privacy')),

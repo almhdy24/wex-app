@@ -10,6 +10,7 @@ import '../features/orders/order_detail_screen.dart';
 import '../features/notifications/notifications_screen.dart';
 import '../features/content/faq_screen.dart';
 import '../features/content/content_page_screen.dart';
+import '../features/account/push_preferences_screen.dart';
 import '../features/orders/orders_screen.dart';
 import '../features/account/account_screen.dart';
 import '../features/auth/login_screen.dart';
@@ -51,6 +52,7 @@ GoRouter buildRouter() => GoRouter(
           builder: (c, s) => OrderDetailScreen(orderNumber: s.pathParameters['number']!),
         ),
         GoRoute(path: '/notifications', parentNavigatorKey: _rootKey, builder: (c, s) => const NotificationsScreen()),
+        GoRoute(path: '/push-preferences', parentNavigatorKey: _rootKey, builder: (c, s) => const PushPreferencesScreen()),
         GoRoute(path: '/faq', parentNavigatorKey: _rootKey, builder: (c, s) => const FaqScreen()),
         GoRoute(
           path: '/pages/:slug',

@@ -7,6 +7,7 @@ import '../data/repositories/product_repository.dart';
 import '../data/repositories/order_repository.dart';
 import '../data/repositories/me_repository.dart';
 import '../data/repositories/notification_repository.dart';
+import '../data/repositories/push_repository.dart';
 
 final productRepositoryProvider =
     Provider((ref) => ProductRepository(ref.read(serverTimeApiProvider)));
@@ -39,3 +40,5 @@ final notificationsProvider = FutureProvider.autoDispose((ref) => ref.read(notif
 final unreadCountProvider = FutureProvider.autoDispose((ref) => ref.read(notificationRepositoryProvider).unreadCount());
 final faqProvider = FutureProvider.autoDispose((ref) => ref.read(contentRepositoryProvider).faq());
 final pageProvider = FutureProvider.autoDispose.family((ref, String slug) => ref.read(contentRepositoryProvider).page(slug));
+
+final pushRepositoryProvider = Provider((ref) => PushRepository(ref.read(serverTimeApiProvider)));
