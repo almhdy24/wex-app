@@ -5,6 +5,7 @@ import '../../app/providers.dart';
 import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
 import '../../core/widgets/product_card.dart';
+import '../../core/widgets/cart_button.dart';
 import '../../data/models/content.dart';
 import '../../data/repositories/product_repository.dart';
 
@@ -112,6 +113,7 @@ class _Hero extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Align(alignment: AlignmentDirectional.centerStart, child: CartButton(color: Colors.white)),
             const Text('مرحبًا بك', style: TextStyle(color: WexColors.onDarkMuted, fontSize: 14)),
             const SizedBox(height: 8),
             Text(title, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800, height: 1.4)),

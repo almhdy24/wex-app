@@ -1,12 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../cart/cart_controller.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
 import '../../core/widgets/price_text.dart';
 import '../../core/widgets/product_card.dart';
+import '../../core/widgets/cart_button.dart';
 import '../../data/models/product.dart';
 
 final productDetailProvider = FutureProvider.autoDispose.family<ProductDetail, String>(
@@ -27,7 +29,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   Widget build(BuildContext context) {
     final async = ref.watch(productDetailProvider(widget.slug));
     return Scaffold(
-      appBar: AppBar(title: const Text('تفاصيل الجهاز')),
+      appBar: AppBar(title: const Text('تفاصيل الجهاز'), actions: const [CartButton()]),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(
@@ -168,11 +170,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 }
 
-class _StickyBar extends StatelessWidget {
+class _StickyBar extends ConsumerWidget {
   final ProductDetail product;
   const _StickyBar({required this.product});
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final disabled = product.isOutOfStock;
     return Container(
       padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x5, Sp.page, Sp.x5),
@@ -189,8 +191,15 @@ class _StickyBar extends StatelessWidget {
             FilledButton.icon(
               onPressed: disabled
                   ? null
-                  : () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('السلة قادمة في التحديث القادم'))),
+                  : () {
+                      ref.read(cartControllerProvider.notifier).addProduct(product);
+                      ScaffoldMessenger.of(context)
+                        ..clearSnackBars()
+                        ..showSnackBar(SnackBar(
+                          content: const Text('أُضيف إلى السلة'),
+                          action: SnackBarAction(label: 'عرض السلة', onPressed: () => context.push('/cart')),
+                        ));
+                    },
               icon: const Icon(Icons.add_shopping_cart),
               label: Text(disabled ? 'غير متوفر' : 'أضف إلى السلة'),
               style: FilledButton.styleFrom(minimumSize: const Size(160, 48)),

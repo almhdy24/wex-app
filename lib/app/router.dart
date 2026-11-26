@@ -4,6 +4,9 @@ import '../core/widgets/wex_scaffold_shell.dart';
 import '../features/home/home_screen.dart';
 import '../features/catalog/catalog_screen.dart';
 import '../features/product/product_detail_screen.dart';
+import '../features/cart/cart_screen.dart';
+import '../features/checkout/checkout_screen.dart';
+import '../features/orders/order_detail_screen.dart';
 import '../features/orders/orders_screen.dart';
 import '../features/account/account_screen.dart';
 import '../features/auth/login_screen.dart';
@@ -36,6 +39,13 @@ GoRouter buildRouter() => GoRouter(
           path: '/products/:slug',
           parentNavigatorKey: _rootKey,
           builder: (c, s) => ProductDetailScreen(slug: s.pathParameters['slug']!),
+        ),
+        GoRoute(path: '/cart', parentNavigatorKey: _rootKey, builder: (c, s) => const CartScreen()),
+        GoRoute(path: '/checkout', parentNavigatorKey: _rootKey, builder: (c, s) => const CheckoutScreen()),
+        GoRoute(
+          path: '/orders/:number',
+          parentNavigatorKey: _rootKey,
+          builder: (c, s) => OrderDetailScreen(orderNumber: s.pathParameters['number']!),
         ),
         GoRoute(path: '/login', parentNavigatorKey: _rootKey, builder: (c, s) => const LoginScreen()),
         GoRoute(

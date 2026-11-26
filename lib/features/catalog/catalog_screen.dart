@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
 import '../../core/widgets/product_card.dart';
+import '../../core/widgets/cart_button.dart';
 import '../../data/repositories/product_repository.dart';
 import 'catalog_controller.dart';
 
@@ -67,7 +68,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     final ctrl = ref.read(catalogControllerProvider(_initial).notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('المتجر')),
+      appBar: AppBar(title: const Text('المتجر'), actions: const [CartButton()]),
       body: Column(
         children: [
           Padding(
