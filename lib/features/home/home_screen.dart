@@ -6,6 +6,7 @@ import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
 import '../../core/widgets/product_card.dart';
 import '../../core/widgets/cart_button.dart';
+import '../../core/widgets/shimmer.dart';
 import '../../data/models/content.dart';
 import '../../data/repositories/product_repository.dart';
 
@@ -70,8 +71,14 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             featured.when(
-              loading: () => const SliverToBoxAdapter(
-                  child: SizedBox(height: 240, child: Center(child: CircularProgressIndicator()))),
+              loading: () => SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: Sp.page),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.66),
+                  delegate: SliverChildBuilderDelegate((_, __) => const ProductCardSkeleton(), childCount: 4),
+                ),
+              ),
               error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
               data: (page) => SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: Sp.page),
@@ -81,7 +88,7 @@ class HomeScreen extends ConsumerWidget {
                   delegate: SliverChildBuilderDelegate(
                     (context, i) {
                       final p = page.items[i];
-                      return ProductCard(product: p, onTap: () => context.push('/products/${p.slug}'));
+                      return FadeInUp(index: i, child: ProductCard(product: p, onTap: () => context.push('/products/${p.slug}')));
                     },
                     childCount: page.items.length,
                   ),

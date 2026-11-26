@@ -5,17 +5,29 @@ import '../design/colors.dart';
 import '../design/spacing.dart';
 import 'price_text.dart';
 
-class ProductCard extends StatelessWidget {
+class ProductCard extends StatefulWidget {
   final ProductListItem product;
   final VoidCallback onTap;
   const ProductCard({super.key, required this.product, required this.onTap});
+  @override
+  State<ProductCard> createState() => _ProductCardState();
+}
 
+class _ProductCardState extends State<ProductCard> {
+  bool _pressed = false;
   @override
   Widget build(BuildContext context) {
+    final product = widget.product;
     final cond = conditionLabel(product.condition);
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
+      onTap: widget.onTap,
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: Container(
         decoration: BoxDecoration(
           color: WexColors.white,
           borderRadius: BorderRadius.circular(Radii.card),
@@ -73,6 +85,7 @@ class ProductCard extends StatelessWidget {
           ],
         ),
       ),
+     ),
     );
   }
 }

@@ -6,6 +6,7 @@ import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
 import '../../core/widgets/product_card.dart';
 import '../../core/widgets/cart_button.dart';
+import '../../core/widgets/shimmer.dart';
 import '../../data/repositories/product_repository.dart';
 import 'catalog_controller.dart';
 
@@ -133,7 +134,13 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 
   Widget _body(CatalogState state, CatalogController ctrl) {
     if (state.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return GridView.builder(
+        padding: const EdgeInsets.all(Sp.page),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.66),
+        itemCount: 6,
+        itemBuilder: (_, __) => const ProductCardSkeleton(),
+      );
     }
     if (state.error != null && state.items.isEmpty) {
       return _Message(icon: Icons.wifi_off, text: state.error!, onRetry: ctrl.refresh);
@@ -154,7 +161,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
           }
           final p = state.items[i];
-          return ProductCard(product: p, onTap: () => context.push('/products/${p.slug}'));
+          return FadeInUp(index: i, child: ProductCard(product: p, onTap: () => context.push('/products/${p.slug}')));
         },
       ),
     );
