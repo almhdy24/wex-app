@@ -1,0 +1,45 @@
+name: wex_app
+description: "Wex Technology — متجر الحواسيب والإلكترونيات"
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State (no codegen — plain Riverpod notifiers)
+  flutter_riverpod: ^2.6.1
+
+  # Networking
+  dio: ^5.7.0
+
+  # Navigation (deep-link ready for push)
+  go_router: ^14.6.2
+
+  # Storage
+  flutter_secure_storage: ^9.2.4
+  shared_preferences: ^2.3.4
+
+  # Media / images
+  cached_network_image: ^3.4.1
+
+  # Auth
+  google_sign_in: ^6.2.2
+
+  # Utils
+  intl: ^0.20.2
+  url_launcher: ^6.3.1
+  collection: ^1.18.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
