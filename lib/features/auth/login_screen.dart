@@ -5,6 +5,8 @@ import '../../core/auth/auth_controller.dart';
 import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
 import '../../core/network/api_exception.dart';
+import '../../core/strings.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -60,17 +62,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_forward)),
               ),
               const Spacer(),
-              Container(
-                width: 68, height: 68, alignment: Alignment.center,
-                decoration: BoxDecoration(gradient: WexColors.gradBrand, borderRadius: BorderRadius.circular(20)),
-                child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 34),
+              Center(
+                child: Container(
+                  width: 76, height: 76, alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: WexColors.gradBrand, borderRadius: BorderRadius.circular(22),
+                    boxShadow: const [BoxShadow(color: Color(0x332E3BC4), blurRadius: 24, offset: Offset(0, 10))]),
+                  child: const Icon(Icons.laptop_chromebook_rounded, color: Colors.white, size: 38),
+                ).animate().scale(begin: const Offset(0.7, 0.7), end: const Offset(1, 1), duration: 420.ms, curve: Curves.easeOutBack).fadeIn(),
               ),
               const SizedBox(height: Sp.x8),
-              const Text('مرحبًا بك في ويكس',
+              const Text(Ar.loginTitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
-              const Text('سجّل دخولك للطلب ومتابعة طلباتك والإشعارات',
+              const Text(Ar.loginSubtitle,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: WexColors.textSecondary, height: 1.6)),
               const SizedBox(height: Sp.x10),
@@ -88,7 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     : Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
                         _GoogleG(),
                         SizedBox(width: 12),
-                        Text('المتابعة عبر Google', style: TextStyle(fontWeight: FontWeight.w700)),
+                        Text(Ar.googleContinue, style: TextStyle(fontWeight: FontWeight.w700)),
                       ]),
               ),
               const SizedBox(height: Sp.x6),
@@ -96,7 +102,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               if (!_emailMode)
                 TextButton(
                   onPressed: () => setState(() => _emailMode = true),
-                  child: const Text('أو سجّل الدخول عبر البريد الإلكتروني'),
+                  child: const Text(Ar.emailLogin),
                 )
               else ...[
                 Row(children: const [
@@ -109,14 +115,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
                   textDirection: TextDirection.ltr,
-                  decoration: const InputDecoration(hintText: 'بريدك الإلكتروني'),
+                  decoration: const InputDecoration(hintText: Ar.emailHint),
                 ),
                 const SizedBox(height: Sp.x5),
                 FilledButton(
                   onPressed: _busyEmail ? null : _sendCode,
                   child: _busyEmail
                       ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('إرسال رمز التحقق'),
+                      : const Text(Ar.sendCode),
                 ),
               ],
 
@@ -125,7 +131,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: WexColors.danger)),
               ),
               const Spacer(flex: 2),
-              const Text('بتسجيلك توافق على شروط الاستخدام وسياسة الخصوصية',
+              const Text(Ar.termsNote,
                   textAlign: TextAlign.center,
                   style: TextStyle(color: WexColors.disabled, fontSize: 12)),
             ],
