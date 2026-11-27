@@ -1,16 +1,21 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../cart/cart_controller.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
+import '../../core/strings.dart';
+import '../../core/utils/launchers.dart';
+import '../../core/utils/spec_normalizer.dart';
+import '../../core/widgets/cart_button.dart';
 import '../../core/widgets/price_text.dart';
 import '../../core/widgets/product_card.dart';
-import '../../core/widgets/cart_button.dart';
+import '../../core/widgets/wex_widgets.dart';
 import '../../data/models/product.dart';
+import '../cart/cart_controller.dart';
 
 final productDetailProvider = FutureProvider.autoDispose.family<ProductDetail, String>(
   (ref, slug) => ref.read(productRepositoryProvider).detail(slug),
@@ -24,7 +29,12 @@ class ProductDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
-  int _imageIndex = 0;
+  final _page = PageController();
+  int _index = 0;
+  bool _descExpanded = false;
+
+  @override
+  void dispose() { _page.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -33,129 +43,132 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       appBar: AppBar(title: const Text('تفاصيل الجهاز'), actions: const [CartButton()]),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Icon(Icons.error_outline, size: 40, color: WexColors.disabled),
-            const SizedBox(height: 12),
-            const Text('تعذّر تحميل الجهاز', style: TextStyle(color: WexColors.textSecondary)),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: () => ref.invalidate(productDetailProvider(widget.slug)),
-              child: const Text('إعادة المحاولة')),
-          ]),
-        ),
+        error: (e, _) => WexEmptyState(
+          icon: Icons.error_outline_rounded, title: 'تعذّر تحميل الجهاز',
+          ctaLabel: Ar.retry, onCta: () => ref.invalidate(productDetailProvider(widget.slug))),
         data: (p) => _content(context, p),
       ),
     );
   }
 
   Widget _content(BuildContext context, ProductDetail p) {
-    final images = p.images.isNotEmpty ? p.images : <ProductImage>[];
-    final cond = conditionLabel(p.condition);
+    final images = p.images;
+    final shop = ref.watch(shopProvider).valueOrNull;
+    final rows = buildSpecRows(p.specs);
+    final h = MediaQuery.of(context).size.height;
     return Column(
       children: [
         Expanded(
           child: ListView(
             padding: EdgeInsets.zero,
             children: [
-              // Gallery
-              AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  color: WexColors.iceLight,
-                  child: images.isEmpty
-                      ? const Icon(Icons.devices_other, size: 72, color: WexColors.disabled)
-                      : Hero(
-                          tag: 'product-${p.id}',
-                          child: CachedNetworkImage(
-                            imageUrl: images[_imageIndex].url, fit: BoxFit.contain),
-                        ),
+              // Gallery (~40% height)
+              SizedBox(
+                height: h * 0.40,
+                child: Stack(
+                  children: [
+                    Container(
+                      color: WexColors.iceLight,
+                      child: images.isEmpty
+                          ? const Center(child: Icon(Icons.laptop_mac_rounded, size: 76, color: WexColors.disabled))
+                          : PageView.builder(
+                              controller: _page,
+                              onPageChanged: (i) => setState(() => _index = i),
+                              itemCount: images.length,
+                              itemBuilder: (_, i) => InteractiveViewer(
+                                maxScale: 4,
+                                child: Hero(
+                                  tag: i == 0 ? 'product-${p.id}' : 'img-$i',
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(20),
+                                    child: CachedNetworkImage(imageUrl: images[i].url, fit: BoxFit.contain),
+                                  ),
+                                ),
+                              ),
+                            ),
+                    ),
+                    if (images.length > 1)
+                      PositionedDirectional(
+                        bottom: 14, start: 0, end: 0,
+                        child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          for (var i = 0; i < images.length; i++)
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 250),
+                              margin: const EdgeInsets.symmetric(horizontal: 3),
+                              width: i == _index ? 22 : 7, height: 7,
+                              decoration: BoxDecoration(
+                                color: i == _index ? WexColors.primary : WexColors.disabled,
+                                borderRadius: BorderRadius.circular(4)),
+                            ),
+                        ]),
+                      ),
+                  ],
                 ),
               ),
-              if (images.length > 1)
-                SizedBox(
-                  height: 70,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.all(Sp.x5),
-                    itemCount: images.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: Sp.x3),
-                    itemBuilder: (_, i) => GestureDetector(
-                      onTap: () => setState(() => _imageIndex = i),
-                      child: Container(
-                        width: 56,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(Radii.sm),
-                          border: Border.all(
-                              color: i == _imageIndex ? WexColors.royal : WexColors.border, width: 2),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: CachedNetworkImage(imageUrl: images[i].thumbUrl, fit: BoxFit.cover),
-                      ),
-                    ),
-                  ),
-                ),
               Padding(
                 padding: const EdgeInsets.all(Sp.page),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (cond.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                            color: WexColors.ice, borderRadius: BorderRadius.circular(Radii.pill)),
-                        child: Text(cond, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: WexColors.navy)),
-                      ),
-                    const SizedBox(height: Sp.x5),
-                    Text(p.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.4)),
+                    Row(children: [
+                      _condBadge(p),
+                      const SizedBox(width: 8),
+                      if (p.stockStatus == StockStatus.lowStock) const _PulseBadge(),
+                    ]),
+                    const SizedBox(height: Sp.x6),
+                    LtrText(p.name, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, height: 1.35)),
                     const SizedBox(height: Sp.x5),
                     PriceText(p.priceSdg, size: 26),
-                    if (p.stockStatus == StockStatus.lowStock) ...[
-                      const SizedBox(height: 8),
-                      const Text('الكمية محدودة', style: TextStyle(color: WexColors.warning, fontWeight: FontWeight.w700)),
-                    ],
-                    if ((p.description ?? '').isNotEmpty) ...[
-                      const SizedBox(height: Sp.x8),
-                      Text(p.description!, style: const TextStyle(height: 1.8, color: WexColors.textSecondary)),
-                    ],
-                    if (p.specs.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    const Text(Ar.priceMayChange, style: TextStyle(color: WexColors.textSecondary, fontSize: 13)),
+
+                    // Specs grid
+                    if (rows.isNotEmpty) ...[
                       const SizedBox(height: Sp.x9),
-                      const Text('المواصفات', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                      const SizedBox(height: Sp.x5),
-                      ...p.specs.entries.map((e) => Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                    width: 120,
-                                    child: Text(e.key,
-                                        style: const TextStyle(color: WexColors.textSecondary))),
-                                Expanded(
-                                    child: Text(e.value,
-                                        style: const TextStyle(fontWeight: FontWeight.w600))),
-                              ],
-                            ),
-                          )),
+                      const Text(Ar.specs, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: Sp.x6),
+                      GridView.builder(
+                        shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2, mainAxisSpacing: Sp.x5, crossAxisSpacing: Sp.x5, childAspectRatio: 2.5),
+                        itemCount: rows.length,
+                        itemBuilder: (_, i) => _SpecTile(rows[i]),
+                      ),
                     ],
+
+                    // Description (expandable)
+                    if ((p.description ?? '').trim().isNotEmpty) ...[
+                      const SizedBox(height: Sp.x9),
+                      const Text('الوصف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: Sp.x5),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.easeOut,
+                        alignment: Alignment.topCenter,
+                        child: Text(p.description!,
+                            maxLines: _descExpanded ? null : 4,
+                            overflow: _descExpanded ? null : TextOverflow.ellipsis,
+                            style: const TextStyle(height: 1.9, color: WexColors.textSecondary)),
+                      ),
+                      TextButton(
+                        onPressed: () => setState(() => _descExpanded = !_descExpanded),
+                        child: Text(_descExpanded ? 'عرض أقل' : 'عرض المزيد'),
+                      ),
+                    ],
+
+                    // Accessories / similar
                     if (p.accessories.isNotEmpty) ...[
-                      const SizedBox(height: Sp.x9),
-                      const Text('ملحقات متوافقة', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-                      const SizedBox(height: Sp.x5),
+                      const SizedBox(height: Sp.x8),
+                      const Text(Ar.compatible, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                      const SizedBox(height: Sp.x6),
                       SizedBox(
-                        height: 220,
+                        height: 236,
                         child: ListView.separated(
                           scrollDirection: Axis.horizontal,
                           itemCount: p.accessories.length,
                           separatorBuilder: (_, __) => const SizedBox(width: Sp.x6),
-                          itemBuilder: (_, i) => SizedBox(
-                            width: 150,
-                            child: ProductCard(
-                              product: p.accessories[i],
-                              onTap: () => context.push('/products/${p.accessories[i].slug}'),
-                            ),
-                          ),
+                          itemBuilder: (_, i) => SizedBox(width: 150,
+                              child: ProductCard(product: p.accessories[i], onTap: () => context.push('/products/${p.accessories[i].slug}'))),
                         ),
                       ),
                     ],
@@ -165,50 +178,100 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             ],
           ),
         ),
-        _StickyBar(product: p),
+        _StickyBar(product: p, whatsapp: shop?.whatsapp ?? ''),
       ],
     );
   }
+
+  Widget _condBadge(ProductDetail p) {
+    final isNew = p.condition == 'new';
+    final label = isNew ? Ar.condNew : (p.condition == 'used_imported' ? Ar.condUsed : conditionLabel(p.condition));
+    if (label.isEmpty) return const SizedBox.shrink();
+    return WexBadge(label, bg: isNew ? WexColors.primary : WexColors.iceLight, fg: isNew ? Colors.white : WexColors.textPrimary);
+  }
+}
+
+class _SpecTile extends StatelessWidget {
+  final SpecRow row;
+  const _SpecTile(this.row);
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(Sp.x5),
+        decoration: BoxDecoration(
+          color: WexColors.white, borderRadius: BorderRadius.circular(Radii.card),
+          border: Border.all(color: WexColors.border)),
+        child: Row(children: [
+          Container(
+            width: 34, height: 34, alignment: Alignment.center,
+            decoration: BoxDecoration(color: WexColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(9)),
+            child: Icon(row.icon, size: 18, color: WexColors.primary)),
+          const SizedBox(width: 10),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
+            Text(row.label, style: const TextStyle(fontSize: 11, color: WexColors.textSecondary)),
+            LtrText(row.value, maxLines: 1, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
+          ])),
+        ]),
+      );
+}
+
+class _PulseBadge extends StatelessWidget {
+  const _PulseBadge();
+  @override
+  Widget build(BuildContext context) => const WexBadge(Ar.lowStock, bg: WexColors.warningBg, fg: WexColors.warning)
+      .animate(onPlay: (c) => c.repeat(reverse: true))
+      .fadeIn(duration: 900.ms)
+      .then()
+      .scaleXY(begin: 1, end: 1.04, duration: 900.ms, curve: Curves.easeInOut);
 }
 
 class _StickyBar extends ConsumerWidget {
   final ProductDetail product;
-  const _StickyBar({required this.product});
+  final String whatsapp;
+  const _StickyBar({required this.product, required this.whatsapp});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final disabled = product.isOutOfStock;
     return Container(
       padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x5, Sp.page, Sp.x5),
-      decoration: const BoxDecoration(
-        color: WexColors.white,
-        boxShadow: [BoxShadow(color: Color(0x14061A55), blurRadius: 16, offset: Offset(0, -4))],
-      ),
+      decoration: const BoxDecoration(color: WexColors.white,
+          boxShadow: [BoxShadow(color: WexColors.shadowSticky, blurRadius: 24, offset: Offset(0, -6))]),
       child: SafeArea(
         top: false,
-        child: Row(
-          children: [
-            PriceText(product.priceSdg, size: 20),
-            const Spacer(),
-            FilledButton.icon(
-              onPressed: disabled
-                  ? null
-                  : () {
-                      HapticFeedback.mediumImpact();
-                      ref.read(cartControllerProvider.notifier).addProduct(product);
-                      ScaffoldMessenger.of(context)
-                        ..clearSnackBars()
-                        ..showSnackBar(SnackBar(
-                          content: const Text('أُضيف إلى السلة'),
-                          action: SnackBarAction(label: 'عرض السلة', onPressed: () => context.push('/cart')),
-                        ));
-                    },
-              icon: const Icon(Icons.add_shopping_cart),
-              label: Text(disabled ? 'غير متوفر' : 'أضف إلى السلة'),
-              style: FilledButton.styleFrom(minimumSize: const Size(160, 48)),
+        child: Row(children: [
+          if (whatsapp.isNotEmpty)
+            _IconBtn(Icons.chat_rounded, () => openWhatsApp(whatsapp,
+                text: 'مرحبًا، أسأل عن: ${product.name}')),
+          if (whatsapp.isNotEmpty) const SizedBox(width: 10),
+          Expanded(
+            child: WexButton(
+              disabled ? Ar.outOfStock : Ar.addToCart,
+              icon: disabled ? null : const Icon(Icons.add_shopping_cart_rounded, color: Colors.white, size: 20),
+              onPressed: disabled ? null : () {
+                HapticFeedback.mediumImpact();
+                ref.read(cartControllerProvider.notifier).addProduct(product);
+                ScaffoldMessenger.of(context)
+                  ..clearSnackBars()
+                  ..showSnackBar(SnackBar(content: const Text(Ar.added),
+                      action: SnackBarAction(label: Ar.viewCart, onPressed: () => context.push('/cart'))));
+              },
             ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
+}
+
+class _IconBtn extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _IconBtn(this.icon, this.onTap);
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: onTap, borderRadius: BorderRadius.circular(14),
+        child: Container(
+          width: 54, height: 54, alignment: Alignment.center,
+          decoration: BoxDecoration(color: WexColors.successBg, borderRadius: BorderRadius.circular(14)),
+          child: const Icon(Icons.chat_rounded, color: WexColors.success, size: 24)),
+      );
 }
