@@ -109,23 +109,43 @@ class _Hero extends StatelessWidget {
   const _Hero({required this.slides});
   @override
   Widget build(BuildContext context) {
-    final title = slides.isNotEmpty ? slides.first.title : 'أجهزة لابتوب لأعمالك ودراستك';
-    final subtitle = slides.isNotEmpty ? slides.first.subtitle : 'أجهزة مستوردة بأسعار واضحة';
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(Sp.page, 48, Sp.page, Sp.x10),
-      decoration: const BoxDecoration(gradient: WexColors.gradNavy),
-      child: SafeArea(
-        bottom: false,
+    final title = slides.isNotEmpty ? slides.first.title : 'أجهزة لابتوب وهواتف لأعمالك ودراستك';
+    final subtitle = slides.isNotEmpty ? slides.first.subtitle : 'أجهزة مستوردة بأسعار واضحة وتثبيت للسعر عند الطلب';
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, 0),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(Sp.x8, Sp.x9, Sp.x8, Sp.x8),
+        decoration: BoxDecoration(
+          gradient: WexColors.gradBrand,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [BoxShadow(color: Color(0x332E3BC4), blurRadius: 28, offset: Offset(0, 14))],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Align(alignment: AlignmentDirectional.centerStart, child: CartButton(color: Colors.white)),
-            const Text('مرحبًا بك', style: TextStyle(color: WexColors.onDarkMuted, fontSize: 14)),
-            const SizedBox(height: 8),
-            Text(title, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w800, height: 1.4)),
+            Row(children: const [
+              Text('ويكس تكنولوجي', style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+              Spacer(),
+              CartButton(color: Colors.white),
+            ]),
+            const SizedBox(height: 4),
+            Text(title, style: const TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.w800, height: 1.4)),
             const SizedBox(height: 8),
             Text(subtitle, style: const TextStyle(color: WexColors.onDarkMuted, fontSize: 14, height: 1.6)),
+            const SizedBox(height: Sp.x8),
+            GestureDetector(
+              onTap: () => context.go('/catalog'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: Sp.x6, vertical: Sp.x6),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(Radii.pill)),
+                child: Row(children: const [
+                  Icon(Icons.search, color: WexColors.textSecondary, size: 20),
+                  SizedBox(width: 10),
+                  Text('ابحث عن جهاز أو ماركة', style: TextStyle(color: WexColors.textSecondary)),
+                ]),
+              ),
+            ),
           ],
         ),
       ),
