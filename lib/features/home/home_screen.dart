@@ -75,7 +75,7 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: Sp.page),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.66),
+                      crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.70),
                   delegate: SliverChildBuilderDelegate((_, __) => const ProductCardSkeleton(), childCount: 4),
                 ),
               ),
@@ -84,7 +84,7 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: Sp.page),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.66),
+                      crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.70),
                   delegate: SliverChildBuilderDelegate(
                     (context, i) {
                       final p = page.items[i];

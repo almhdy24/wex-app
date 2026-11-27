@@ -1,39 +1,51 @@
 import 'package:flutter/material.dart';
 
-/// Brand palette — ported 1:1 from the web design tokens (src/styles/tokens.css).
+/// Modern, premium palette for an imported-electronics store. One confident
+/// indigo→violet accent (signature gradient), deep-midnight ink, cool near-white
+/// surfaces. Calm, not flat; distinctive, not neon.
 abstract final class WexColors {
-  static const navy = Color(0xFF061A55);
-  static const royal = Color(0xFF0B3FBF);
-  static const vivid = Color(0xFF1E6BFF);
-  static const cyan = Color(0xFF00B7FF);
+  // Accent (actions, selected states, signature gradient)
+  static const primary = Color(0xFF3E4EE8);
+  static const primaryDeep = Color(0xFF2E3BC4);
+  static const violet = Color(0xFF6A5CF0);
+  static const royal = primary;  // aliases kept for existing refs
+  static const vivid = violet;
+  static const cyan = primary;
 
-  static const ice = Color(0xFFEAF3FF);
-  static const iceLight = Color(0xFFF4F8FE);
+  // Ink / text
+  static const navy = Color(0xFF0E1430);        // deep midnight (dark headers)
+  static const textPrimary = Color(0xFF111833);
+  static const textSecondary = Color(0xFF6A7187);
+  static const border = Color(0xFFE9EBF2);
+  static const disabled = Color(0xFFADB2C2);
+
+  // Surfaces / background
+  static const ice = Color(0xFFF6F7FB);         // app background (cool near-white)
+  static const iceLight = Color(0xFFF1F3F9);
   static const white = Color(0xFFFFFFFF);
 
-  static const textPrimary = navy;
-  static const textSecondary = Color(0xFF4B5B85);
-  static const border = Color(0xFFD5E2F7);
-  static const disabled = Color(0xFF9AA8C7);
-
   static const onDark = Color(0xFFFFFFFF);
-  static const onDarkMuted = Color(0xFFC9D6F5);
+  static const onDarkMuted = Color(0xFFC4CAE4);
 
-  static const success = Color(0xFF12805C);
-  static const successBg = Color(0xFFE8F5EE);
-  static const warning = Color(0xFFB45309);
-  static const warningBg = Color(0xFFFEF3E2);
-  static const danger = Color(0xFFB42318);
-  static const dangerBg = Color(0xFFFEE8E7);
+  // Status
+  static const success = Color(0xFF0E9F6E);
+  static const successBg = Color(0xFFE6F6EF);
+  static const warning = Color(0xFFB4690E);
+  static const warningBg = Color(0xFFFBF0E2);
+  static const danger = Color(0xFFDC4A46);
+  static const dangerBg = Color(0xFFFCEBEA);
 
+  // Soft neutral shadows
+  static const shadowSoft = Color(0x0F131A3A);
+  static const shadowSticky = Color(0x14131A3A);
+
+  // Signature gradient — hero, primary CTA, lock card
   static const gradBrand = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [royal, vivid, cyan],
+    begin: Alignment.topRight, end: Alignment.bottomLeft,
+    colors: [Color(0xFF3E4EE8), Color(0xFF6A5CF0)],
   );
   static const gradNavy = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [navy, royal],
+    begin: Alignment.topRight, end: Alignment.bottomLeft,
+    colors: [Color(0xFF151C3C), Color(0xFF2A2E73)],
   );
 }

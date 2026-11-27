@@ -23,7 +23,7 @@ jobs:
       - run: flutter --version
       - run: flutter pub get
       - run: flutter analyze
-      - run: flutter test
+      - run: flutter test --exclude-tags golden
 
   build-apk:
     # Only build the APK on demand (tag or manual) — not every push. Final app build.

@@ -137,7 +137,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       return GridView.builder(
         padding: const EdgeInsets.all(Sp.page),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.66),
+            crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.70),
         itemCount: 6,
         itemBuilder: (_, __) => const ProductCardSkeleton(),
       );
@@ -154,7 +154,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
         controller: _scrollCtrl,
         padding: const EdgeInsets.all(Sp.page),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.66),
+          crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.70),
         itemCount: state.items.length + (state.hasMore ? 2 : 0),
         itemBuilder: (context, i) {
           if (i >= state.items.length) {

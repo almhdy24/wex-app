@@ -5,6 +5,9 @@ import '../design/colors.dart';
 import '../design/spacing.dart';
 import 'price_text.dart';
 
+/// Modern product card: large rounded image, hairline border, quiet shadow,
+/// condition pill, press-scale. Robust against overflow (no AspectRatio in a
+/// fixed grid cell — image takes the flexible space).
 class ProductCard extends StatefulWidget {
   final ProductListItem product;
   final VoidCallback onTap;
@@ -15,89 +18,101 @@ class ProductCard extends StatefulWidget {
 
 class _ProductCardState extends State<ProductCard> {
   bool _pressed = false;
+
   @override
   Widget build(BuildContext context) {
-    final product = widget.product;
-    final cond = conditionLabel(product.condition);
+    final p = widget.product;
+    final cond = conditionLabel(p.condition);
     return GestureDetector(
       onTap: widget.onTap,
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) => setState(() => _pressed = false),
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedScale(
-        scale: _pressed ? 0.97 : 1.0,
+        scale: _pressed ? 0.97 : 1,
         duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
         child: Container(
-        decoration: BoxDecoration(
-          color: WexColors.white,
-          borderRadius: BorderRadius.circular(Radii.card),
-          boxShadow: const [BoxShadow(color: Color(0x0F061A55), blurRadius: 6, offset: Offset(0, 2))],
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AspectRatio(
-              aspectRatio: 4 / 3,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Hero(
-                    tag: 'product-${product.id}',
-                    child: product.thumbUrl.isEmpty
-                        ? Container(color: WexColors.iceLight, child: const Icon(Icons.devices_other, color: WexColors.disabled, size: 40))
-                        : CachedNetworkImage(
-                            imageUrl: product.thumbUrl,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(color: WexColors.iceLight),
-                            errorWidget: (_, __, ___) => Container(
-                                color: WexColors.iceLight,
-                                child: const Icon(Icons.devices_other, color: WexColors.disabled, size: 40)),
-                          ),
-                  ),
-                  if (cond.isNotEmpty)
-                    PositionedDirectional(
-                      top: 8, start: 8,
-                      child: _Badge(text: cond, color: product.condition == 'new' ? WexColors.royal : WexColors.navy),
+          decoration: BoxDecoration(
+            color: WexColors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: WexColors.border),
+            boxShadow: const [BoxShadow(color: WexColors.shadowSoft, blurRadius: 18, offset: Offset(0, 8))],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Container(
+                      color: WexColors.iceLight,
+                      child: Hero(
+                        tag: 'product-${p.id}',
+                        child: p.thumbUrl.isEmpty
+                            ? const Icon(Icons.laptop_mac_rounded, color: WexColors.disabled, size: 38)
+                            : CachedNetworkImage(
+                                imageUrl: p.thumbUrl, fit: BoxFit.cover,
+                                placeholder: (_, __) => const ColoredBox(color: WexColors.iceLight),
+                                errorWidget: (_, __, ___) => const Icon(Icons.laptop_mac_rounded, color: WexColors.disabled, size: 38),
+                              ),
+                      ),
                     ),
-                  if (product.isOutOfStock)
-                    PositionedDirectional(
-                      top: 8, end: 8,
-                      child: _Badge(text: 'نفذ', color: WexColors.danger),
-                    ),
-                ],
+                    if (cond.isNotEmpty)
+                      PositionedDirectional(
+                        top: 10, start: 10,
+                        child: _Pill(text: cond, filled: p.condition == 'new'),
+                      ),
+                    if (p.isOutOfStock)
+                      Positioned.fill(
+                        child: ColoredBox(
+                          color: const Color(0x66FFFFFF),
+                          child: Center(child: _Pill(text: 'نفذ', filled: true, danger: true)),
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(Sp.x6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(product.name,
-                      maxLines: 2, overflow: TextOverflow.ellipsis,
-                      textDirection: TextDirection.rtl,
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, height: 1.4)),
-                  const SizedBox(height: 6),
-                  PriceText(product.priceSdg, size: 16),
-                ],
+              Padding(
+                padding: const EdgeInsets.fromLTRB(Sp.x6, Sp.x5, Sp.x6, Sp.x6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(p.name,
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, height: 1.3)),
+                    const SizedBox(height: 6),
+                    PriceText(p.priceSdg, size: 15.5),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-     ),
     );
   }
 }
 
-class _Badge extends StatelessWidget {
+class _Pill extends StatelessWidget {
   final String text;
-  final Color color;
-  const _Badge({required this.text, required this.color});
+  final bool filled;
+  final bool danger;
+  const _Pill({required this.text, this.filled = false, this.danger = false});
   @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(Radii.sm)),
-        child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
-      );
+  Widget build(BuildContext context) {
+    final bg = danger ? WexColors.danger : filled ? WexColors.primary : Colors.white;
+    final fg = (danger || filled) ? Colors.white : WexColors.textPrimary;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg, borderRadius: BorderRadius.circular(Radii.pill),
+        border: filled || danger ? null : Border.all(color: WexColors.border),
+      ),
+      child: Text(text, style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w700)),
+    );
+  }
 }

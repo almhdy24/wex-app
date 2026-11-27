@@ -24,7 +24,10 @@ class PriceText extends StatelessWidget {
     );
     return Semantics(
       label: '${formatSdgAmount(value)} $sdgUnit',
-      child: Row(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: AlignmentDirectional.centerStart,
+        child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Directionality(
@@ -34,6 +37,7 @@ class PriceText extends StatelessWidget {
           const SizedBox(width: 4),
           Text(sdgUnit, style: style.copyWith(fontSize: size * 0.72, fontWeight: FontWeight.w700)),
         ],
+      ),
       ),
     );
   }
