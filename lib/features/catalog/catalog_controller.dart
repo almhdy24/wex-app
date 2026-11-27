@@ -10,6 +10,7 @@ class CatalogState {
   final bool loading;
   final bool loadingMore;
   final bool hasMore;
+  final int total;
   final String? error;
 
   const CatalogState({
@@ -18,6 +19,7 @@ class CatalogState {
     this.loading = true,
     this.loadingMore = false,
     this.hasMore = false,
+    this.total = 0,
     this.error,
   });
 
@@ -27,6 +29,7 @@ class CatalogState {
     bool? loading,
     bool? loadingMore,
     bool? hasMore,
+    int? total,
     String? error,
     bool clearError = false,
   }) =>
@@ -36,6 +39,7 @@ class CatalogState {
         loading: loading ?? this.loading,
         loadingMore: loadingMore ?? this.loadingMore,
         hasMore: hasMore ?? this.hasMore,
+        total: total ?? this.total,
         error: clearError ? null : (error ?? this.error),
       );
 }
@@ -65,6 +69,7 @@ class CatalogController extends StateNotifier<CatalogState> {
         loading: false,
         loadingMore: false,
         hasMore: page.meta.hasMore,
+        total: page.meta.total,
         clearError: true,
       );
     } on ApiException catch (e) {

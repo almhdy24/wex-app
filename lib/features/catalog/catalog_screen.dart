@@ -31,6 +31,33 @@ class CatalogScreen extends ConsumerStatefulWidget {
   ConsumerState<CatalogScreen> createState() => _CatalogScreenState();
 }
 
+String _sortLabel(String? v) => _sorts.firstWhere((s) => s.value == (v ?? 'newest'), orElse: () => _sorts.first).label;
+
+void _openSortSheet(BuildContext context, String current, void Function(String) onPick) {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: WexColors.white,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+    builder: (ctx) => SafeArea(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        const SizedBox(height: 12),
+        Container(width: 40, height: 4, decoration: BoxDecoration(color: WexColors.border, borderRadius: BorderRadius.circular(2))),
+        const SizedBox(height: 8),
+        const Padding(padding: EdgeInsets.all(Sp.x6), child: Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: Text('ترتيب حسب', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)))),
+        for (final s in _sorts)
+          ListTile(
+            title: Text(s.label, style: const TextStyle(fontWeight: FontWeight.w600)),
+            trailing: current == s.value ? const Icon(Icons.check_rounded, color: WexColors.primary) : null,
+            onTap: () { onPick(s.value); Navigator.pop(ctx); },
+          ),
+        const SizedBox(height: 8),
+      ]),
+    ),
+  );
+}
+
 class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   late final ProductQuery _initial =
       ProductQuery(type: widget.initialType, search: widget.initialSearch, sort: 'newest');
@@ -112,19 +139,32 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               ],
             ),
           ),
-          Row(
-            children: [
-              const SizedBox(width: Sp.page),
-              const Icon(Icons.sort, size: 18, color: WexColors.textSecondary),
-              const SizedBox(width: 6),
-              DropdownButton<String>(
-                value: state.query.sort ?? 'newest',
-                underline: const SizedBox.shrink(),
-                items: [for (final s in _sorts) DropdownMenuItem(value: s.value, child: Text(s.label))],
-                onChanged: (v) => ctrl.setSort(v),
-              ),
-              const Spacer(),
-            ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x3, Sp.page, Sp.x3),
+            child: Row(
+              children: [
+                if (!state.loading && state.total > 0)
+                  Text('${state.total} نتيجة',
+                      style: const TextStyle(color: WexColors.textSecondary, fontSize: 13)),
+                const Spacer(),
+                InkWell(
+                  onTap: () => _openSortSheet(context, state.query.sort ?? 'newest', ctrl.setSort),
+                  borderRadius: BorderRadius.circular(Radii.pill),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: WexColors.white, borderRadius: BorderRadius.circular(Radii.pill),
+                      border: Border.all(color: WexColors.border)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      const Icon(Icons.sort_rounded, size: 16, color: WexColors.primary),
+                      const SizedBox(width: 6),
+                      Text(_sortLabel(state.query.sort), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                      const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: WexColors.textSecondary),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
           ),
           Expanded(child: _body(state, ctrl)),
         ],
