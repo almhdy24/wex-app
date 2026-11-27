@@ -14,16 +14,26 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _email = TextEditingController();
-  bool _busy = false;
+  bool _busyGoogle = false, _busyEmail = false;
+  bool _emailMode = false;
   String? _error;
 
-  Future<void> _submit() async {
-    final email = _email.text.trim();
-    if (!email.contains('@')) {
-      setState(() => _error = 'أدخل بريدًا إلكترونيًا صحيحًا');
-      return;
+  Future<void> _google() async {
+    setState(() { _busyGoogle = true; _error = null; });
+    final ok = await ref.read(authControllerProvider.notifier).signInWithGoogle();
+    if (!mounted) return;
+    setState(() => _busyGoogle = false);
+    if (ok) {
+      context.pop();
+    } else {
+      setState(() => _error = 'تعذّر تسجيل الدخول عبر Google. جرّب البريد الإلكتروني.');
     }
-    setState(() { _busy = true; _error = null; });
+  }
+
+  Future<void> _sendCode() async {
+    final email = _email.text.trim();
+    if (!email.contains('@')) { setState(() => _error = 'أدخل بريدًا إلكترونيًا صحيحًا'); return; }
+    setState(() { _busyEmail = true; _error = null; });
     try {
       await ref.read(authControllerProvider.notifier).requestEmailOtp(email);
       if (mounted) context.push('/verify?email=${Uri.encodeComponent(email)}');
@@ -32,43 +42,128 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (_) {
       setState(() => _error = 'تعذّر الاتصال. حاول مرة أخرى.');
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) setState(() => _busyEmail = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('تسجيل الدخول')),
-      body: ListView(
-        padding: const EdgeInsets.all(Sp.page),
-        children: [
-          const SizedBox(height: 24),
-          const Text('سجّل دخولك بدون كلمة مرور',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800), textAlign: TextAlign.center),
-          const SizedBox(height: 8),
-          const Text('سنرسل رمز تحقق من 6 أرقام إلى بريدك.',
-              style: TextStyle(color: WexColors.textSecondary), textAlign: TextAlign.center),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _email,
-            keyboardType: TextInputType.emailAddress,
-            textDirection: TextDirection.ltr,
-            decoration: const InputDecoration(hintText: 'بريدك الإلكتروني'),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(Sp.x8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_forward)),
+              ),
+              const Spacer(),
+              Container(
+                width: 68, height: 68, alignment: Alignment.center,
+                decoration: BoxDecoration(gradient: WexColors.gradBrand, borderRadius: BorderRadius.circular(20)),
+                child: const Icon(Icons.bolt_rounded, color: Colors.white, size: 34),
+              ),
+              const SizedBox(height: Sp.x8),
+              const Text('مرحبًا بك في ويكس',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              const Text('سجّل دخولك للطلب ومتابعة طلباتك والإشعارات',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: WexColors.textSecondary, height: 1.6)),
+              const SizedBox(height: Sp.x10),
+
+              // PRIMARY: Google
+              FilledButton(
+                onPressed: _busyGoogle ? null : _google,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white, foregroundColor: WexColors.textPrimary,
+                  side: const BorderSide(color: WexColors.border),
+                  minimumSize: const Size.fromHeight(56),
+                ),
+                child: _busyGoogle
+                    ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))
+                    : Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
+                        _GoogleG(),
+                        SizedBox(width: 12),
+                        Text('المتابعة عبر Google', style: TextStyle(fontWeight: FontWeight.w700)),
+                      ]),
+              ),
+              const SizedBox(height: Sp.x6),
+
+              if (!_emailMode)
+                TextButton(
+                  onPressed: () => setState(() => _emailMode = true),
+                  child: const Text('أو سجّل الدخول عبر البريد الإلكتروني'),
+                )
+              else ...[
+                Row(children: const [
+                  Expanded(child: Divider()),
+                  Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('أو', style: TextStyle(color: WexColors.textSecondary))),
+                  Expanded(child: Divider()),
+                ]),
+                const SizedBox(height: Sp.x6),
+                TextField(
+                  controller: _email,
+                  keyboardType: TextInputType.emailAddress,
+                  textDirection: TextDirection.ltr,
+                  decoration: const InputDecoration(hintText: 'بريدك الإلكتروني'),
+                ),
+                const SizedBox(height: Sp.x5),
+                FilledButton(
+                  onPressed: _busyEmail ? null : _sendCode,
+                  child: _busyEmail
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('إرسال رمز التحقق'),
+                ),
+              ],
+
+              if (_error != null) Padding(
+                padding: const EdgeInsets.only(top: Sp.x6),
+                child: Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: WexColors.danger)),
+              ),
+              const Spacer(flex: 2),
+              const Text('بتسجيلك توافق على شروط الاستخدام وسياسة الخصوصية',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: WexColors.disabled, fontSize: 12)),
+            ],
           ),
-          if (_error != null) Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Text(_error!, style: const TextStyle(color: WexColors.danger)),
-          ),
-          const SizedBox(height: 16),
-          FilledButton(
-            onPressed: _busy ? null : _submit,
-            child: _busy
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('إرسال رمز التحقق'),
-          ),
-        ],
+        ),
       ),
     );
   }
+}
+
+/// Simple Google "G" mark (brand colours).
+class _GoogleG extends StatelessWidget {
+  const _GoogleG();
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        width: 20, height: 20,
+        child: CustomPaint(painter: _GPainter()),
+      );
+}
+
+class _GPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.width / 2;
+    final paint = Paint()..style = PaintingStyle.stroke..strokeWidth = size.width * 0.22..strokeCap = StrokeCap.butt;
+    void arc(double start, double sweep, Color col) {
+      paint.color = col;
+      canvas.drawArc(Rect.fromCircle(center: c, radius: r * 0.78), start, sweep, false, paint);
+    }
+    arc(-0.35, 1.2, const Color(0xFF4285F4));
+    arc(0.85, 1.4, const Color(0xFF34A853));
+    arc(2.25, 1.4, const Color(0xFFFBBC05));
+    arc(3.65, 1.4, const Color(0xFFEA4335));
+    // crossbar
+    final bar = Paint()..color = const Color(0xFF4285F4)..style = PaintingStyle.fill;
+    canvas.drawRect(Rect.fromLTWH(c.dx, c.dy - size.height * 0.08, r * 0.82, size.height * 0.16), bar);
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../network/api_client.dart';
 import '../../data/models/auth_tokens.dart';
@@ -84,6 +85,25 @@ class AuthController extends StateNotifier<AuthState> {
       _apply(res.tokens, res.user);
     } finally {
       state = state.copyWith(loading: false);
+    }
+  }
+
+  /// Native Google sign-in: obtains an ID token for the backend's web client.
+  Future<bool> signInWithGoogle() async {
+    final google = GoogleSignIn(
+      serverClientId: '106015853692-ktr3bm0f597u8b7ad5dfimrps8ljna0t.apps.googleusercontent.com',
+      scopes: const ['email', 'profile'],
+    );
+    try {
+      final account = await google.signIn();
+      if (account == null) return false; // cancelled
+      final auth = await account.authentication;
+      final idToken = auth.idToken;
+      if (idToken == null) return false;
+      await googleSignIn(idToken);
+      return state.isAuthenticated;
+    } catch (_) {
+      return false;
     }
   }
 
