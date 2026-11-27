@@ -59,10 +59,10 @@ void main() {
               const SizedBox(height: 16),
               GridView.count(
                 crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 14, crossAxisSpacing: 14, childAspectRatio: 0.70,
+                mainAxisSpacing: 14, crossAxisSpacing: 14, childAspectRatio: 0.62,
                 children: [
-                  ProductCard(product: _p('Dell Latitude 7490', 487500, 'used_imported'), onTap: () {}),
-                  ProductCard(product: _p('MacBook Air M2', 1850000, 'new'), onTap: () {}),
+                  ProductCard(product: _p('Dell Latitude 7490', 487500, 'used_imported'), onTap: () {}, chips: const ['i5','8GB','256GB']),
+                  ProductCard(product: _p('MacBook Air M2', 1850000, 'new'), onTap: () {}, chips: const ['M2','16GB','512GB']),
                 ],
               ),
             ],

@@ -3,26 +3,28 @@ import 'package:flutter/material.dart';
 import '../../data/models/product.dart';
 import '../design/colors.dart';
 import '../design/spacing.dart';
+import '../strings.dart';
 import 'price_text.dart';
+import 'wex_widgets.dart';
 
-/// Modern product card: large rounded image, hairline border, quiet shadow,
-/// condition pill, press-scale. Robust against overflow (no AspectRatio in a
-/// fixed grid cell — image takes the flexible space).
+/// Product card: branded image/placeholder, condition badge, brand+model name
+/// (2-line ellipsis, LTR for English), spec chips, price. Press-scale.
 class ProductCard extends StatefulWidget {
   final ProductListItem product;
   final VoidCallback onTap;
-  const ProductCard({super.key, required this.product, required this.onTap});
+  final List<String> chips; // optional short spec chips
+  const ProductCard({super.key, required this.product, required this.onTap, this.chips = const []});
   @override
   State<ProductCard> createState() => _ProductCardState();
 }
 
 class _ProductCardState extends State<ProductCard> {
   bool _pressed = false;
-
   @override
   Widget build(BuildContext context) {
     final p = widget.product;
-    final cond = conditionLabel(p.condition);
+    final isNew = p.condition == 'new';
+    final cond = isNew ? Ar.condNew : (p.condition == 'used_imported' ? Ar.condUsed : conditionLabel(p.condition));
     return GestureDetector(
       onTap: widget.onTap,
       onTapDown: (_) => setState(() => _pressed = true),
@@ -49,29 +51,25 @@ class _ProductCardState extends State<ProductCard> {
                   children: [
                     Container(
                       color: WexColors.iceLight,
-                      child: Hero(
-                        tag: 'product-${p.id}',
-                        child: p.thumbUrl.isEmpty
-                            ? const Icon(Icons.laptop_mac_rounded, color: WexColors.disabled, size: 38)
-                            : CachedNetworkImage(
-                                imageUrl: p.thumbUrl, fit: BoxFit.cover,
-                                placeholder: (_, __) => const ColoredBox(color: WexColors.iceLight),
-                                errorWidget: (_, __, ___) => const Icon(Icons.laptop_mac_rounded, color: WexColors.disabled, size: 38),
+                      padding: const EdgeInsets.all(8),
+                      child: p.thumbUrl.isEmpty
+                          ? const _Placeholder()
+                          : Hero(
+                              tag: 'product-${p.id}',
+                              child: CachedNetworkImage(
+                                imageUrl: p.thumbUrl, fit: BoxFit.contain,
+                                placeholder: (_, __) => const _Placeholder(),
+                                errorWidget: (_, __, ___) => const _Placeholder(),
                               ),
-                      ),
+                            ),
                     ),
                     if (cond.isNotEmpty)
-                      PositionedDirectional(
-                        top: 10, start: 10,
-                        child: _Pill(text: cond, filled: p.condition == 'new'),
-                      ),
+                      PositionedDirectional(top: 10, start: 10, child: WexBadge(cond,
+                          bg: isNew ? WexColors.primary : Colors.white,
+                          fg: isNew ? Colors.white : WexColors.textPrimary)),
                     if (p.isOutOfStock)
-                      Positioned.fill(
-                        child: ColoredBox(
-                          color: const Color(0x66FFFFFF),
-                          child: Center(child: _Pill(text: 'نفذ', filled: true, danger: true)),
-                        ),
-                      ),
+                      Positioned.fill(child: ColoredBox(color: const Color(0x80FFFFFF),
+                          child: Center(child: WexBadge(Ar.outOfStock, bg: WexColors.danger)))),
                   ],
                 ),
               ),
@@ -81,10 +79,14 @@ class _ProductCardState extends State<ProductCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(p.name,
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                    LtrText(p.name, maxLines: 2,
                         style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, height: 1.3)),
-                    const SizedBox(height: 6),
+                    if (widget.chips.isNotEmpty) ...[
+                      const SizedBox(height: 7),
+                      Wrap(spacing: 5, runSpacing: 5,
+                          children: [for (final c in widget.chips.take(3)) WexChip(c)]),
+                    ],
+                    const SizedBox(height: 8),
                     PriceText(p.priceSdg, size: 15.5),
                   ],
                 ),
@@ -97,22 +99,9 @@ class _ProductCardState extends State<ProductCard> {
   }
 }
 
-class _Pill extends StatelessWidget {
-  final String text;
-  final bool filled;
-  final bool danger;
-  const _Pill({required this.text, this.filled = false, this.danger = false});
+class _Placeholder extends StatelessWidget {
+  const _Placeholder();
   @override
-  Widget build(BuildContext context) {
-    final bg = danger ? WexColors.danger : filled ? WexColors.primary : Colors.white;
-    final fg = (danger || filled) ? Colors.white : WexColors.textPrimary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bg, borderRadius: BorderRadius.circular(Radii.pill),
-        border: filled || danger ? null : Border.all(color: WexColors.border),
-      ),
-      child: Text(text, style: TextStyle(color: fg, fontSize: 11, fontWeight: FontWeight.w700)),
-    );
-  }
+  Widget build(BuildContext context) => const Center(
+      child: Icon(Icons.laptop_mac_rounded, color: WexColors.disabled, size: 36));
 }
