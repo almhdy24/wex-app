@@ -2,7 +2,6 @@ import '../../ui/gradients.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../design/colors.g.dart';
 
 /// Registry of mounted cart icons (the visible one is the animation target).
 abstract final class CartTargets {

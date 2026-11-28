@@ -36,6 +36,8 @@ class ProductListItem {
   final String? thumbPath;
   final String? imagePath;
   final Map<String, String> specs;
+  final int? compareAtSdg; // old price (deal) when greater than priceSdg
+  final List<String> specChips; // server-derived from the spec schema
 
   const ProductListItem({
     required this.id,
@@ -50,7 +52,11 @@ class ProductListItem {
     this.thumbPath,
     this.imagePath,
     this.specs = const {},
+    this.compareAtSdg,
+    this.specChips = const [],
   });
+
+  bool get isDeal => compareAtSdg != null && compareAtSdg! > priceSdg;
 
   /// Normalized brand/model for display (typo-fixed, title-cased).
   ProductTitle get title => normalizeProductName(name);
@@ -74,6 +80,8 @@ class ProductListItem {
       thumbPath: (j['thumb_url'] ?? img['thumb_path'])?.toString(),
       imagePath: (j['primary_image'] ?? img['path'])?.toString(),
       specs: _specMap(j['specs']),
+      compareAtSdg: (j['compare_at_sdg'] is num) ? (j['compare_at_sdg'] as num).round() : null,
+      specChips: (j['spec_chips'] is List) ? [for (final c in j['spec_chips']) c.toString()] : const [],
     );
   }
 }
@@ -119,6 +127,7 @@ class ProductDetail {
   final String? brandName;
   final List<ProductImage> images;
   final List<ProductListItem> accessories;
+  final int? compareAtSdg;
 
   const ProductDetail({
     required this.id,
@@ -138,7 +147,10 @@ class ProductDetail {
     this.brandName,
     this.images = const [],
     this.accessories = const [],
+    this.compareAtSdg,
   });
+
+  bool get isDeal => compareAtSdg != null && compareAtSdg! > priceSdg;
 
   ProductTitle get title => normalizeProductName(name);
 
@@ -171,6 +183,7 @@ class ProductDetail {
       categoryName: cat?['name_ar']?.toString(),
       categoryId: cat?['id'] as int?,
       brandName: brand?['name']?.toString(),
+      compareAtSdg: (j['compare_at_sdg'] is num) ? (j['compare_at_sdg'] as num).round() : null,
       images: (j['images'] as List? ?? [])
           .map((e) => ProductImage.fromJson(Map<String, dynamic>.from(e)))
           .toList(),

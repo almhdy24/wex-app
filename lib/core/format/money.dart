@@ -1,6 +1,6 @@
 /// Pure Dart (no flutter imports). Bidi-safe money, order numbers.
-const String lri = '⁦'; // LEFT-TO-RIGHT ISOLATE
-const String pdi = '⁩'; // POP DIRECTIONAL ISOLATE
+const String lri = '\u2066'; // LEFT-TO-RIGHT ISOLATE
+const String pdi = '\u2069'; // POP DIRECTIONAL ISOLATE
 const String currencyUnit = 'ج.س';
 
 String isolate(String s) => '$lri$s$pdi';
