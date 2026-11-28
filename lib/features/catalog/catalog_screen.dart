@@ -44,7 +44,8 @@ const _conditions = [
 class CatalogScreen extends ConsumerStatefulWidget {
   final String? initialType;
   final String? initialSearch;
-  const CatalogScreen({super.key, this.initialType, this.initialSearch});
+  final bool autofocusSearch;
+  const CatalogScreen({super.key, this.initialType, this.initialSearch, this.autofocusSearch = false});
   @override
   ConsumerState<CatalogScreen> createState() => _CatalogScreenState();
 }
@@ -94,6 +95,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             height: 48,
             child: TextField(
               controller: _searchCtrl,
+              autofocus: widget.autofocusSearch,
               textInputAction: TextInputAction.search,
               onChanged: (v) {
                 _debounce?.cancel();

@@ -1,3 +1,4 @@
+import '../../core/format/store_status.dart';
 class Shop {
   final String name;
   final String address;
@@ -11,6 +12,8 @@ class Shop {
   final String ordersDisabledMessage;
   final bool tickerEnabled;
   final DateTime? pricesUpdatedAt;
+  /// Opening windows per ISO weekday (1=Mon..7=Sun); null when the owner has not set `store_hours`.
+  final Map<int, DayHours?>? storeHours;
 
   const Shop({
     required this.name,
@@ -25,7 +28,30 @@ class Shop {
     required this.ordersDisabledMessage,
     required this.tickerEnabled,
     this.pricesUpdatedAt,
+    this.storeHours,
   });
+
+  static Map<int, DayHours?>? _hours(dynamic raw) {
+    if (raw is! Map) return null;
+    int? mins(dynamic v) {
+      final m = RegExp(r'^(\d{1,2}):(\d{2})$').firstMatch((v ?? '').toString());
+      return m == null ? null : int.parse(m.group(1)!) * 60 + int.parse(m.group(2)!);
+    }
+
+    final out = <int, DayHours?>{};
+    raw.forEach((k, v) {
+      final d = int.tryParse(k.toString());
+      if (d == null || d < 1 || d > 7) return;
+      if (v is Map) {
+        final o = mins(v['open']);
+        final c = mins(v['close']);
+        out[d] = (o == null || c == null) ? null : DayHours(o, c);
+      } else {
+        out[d] = null;
+      }
+    });
+    return out.isEmpty ? null : out;
+  }
 
   factory Shop.fromJson(Map<String, dynamic> j) => Shop(
         name: (j['name'] ?? 'ويكس تكنولوجي').toString(),
@@ -41,5 +67,6 @@ class Shop {
         tickerEnabled: j['ticker_enabled'] == true,
         pricesUpdatedAt:
             DateTime.tryParse((j['prices_updated_at'] ?? '').toString()),
+        storeHours: _hours(j['store_hours']),
       );
 }

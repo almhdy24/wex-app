@@ -1,6 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/auth/auth_controller.dart';
+import '../data/models/product.dart';
 import '../data/models/shop.dart';
+import '../data/models/promotion.dart';
+import '../data/repositories/promotion_repository.dart';
 import '../data/repositories/catalog_repository.dart';
 import '../data/repositories/content_repository.dart';
 import '../data/repositories/product_repository.dart';
@@ -71,4 +74,26 @@ final pushServiceProvider = Provider((ref) => PushService(
 final accessoriesProvider = FutureProvider.autoDispose((ref) async {
   final page = await ref.read(productRepositoryProvider).list(const ProductQuery(type: 'accessory', perPage: 8));
   return page.items;
+});
+
+final promotionRepositoryProvider =
+    Provider((ref) => PromotionRepository(ref.read(serverTimeApiProvider)));
+
+/// Active promotions for a placement. Any failure -> empty list (no hole, no error UI).
+final promotionsProvider = FutureProvider.autoDispose.family<List<Promotion>, String>((ref, placement) async {
+  try {
+    return await ref.read(promotionRepositoryProvider).list(placement);
+  } catch (_) {
+    return const [];
+  }
+});
+
+/// Products with a compare-at price (deals). Empty on any failure.
+final dealsProvider = FutureProvider.autoDispose<List<ProductListItem>>((ref) async {
+  try {
+    final page = await ref.read(productRepositoryProvider).list(const ProductQuery(dealsOnly: true, perPage: 8));
+    return page.items;
+  } catch (_) {
+    return const [];
+  }
 });

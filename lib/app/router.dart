@@ -83,6 +83,7 @@ GoRouter _build() => GoRouter(
                 builder: (c, s) => CatalogScreen(
                   initialType: s.uri.queryParameters['type'],
                   initialSearch: s.uri.queryParameters['search'],
+                  autofocusSearch: s.uri.queryParameters['focus'] == '1',
                 ),
               ),
             ]),

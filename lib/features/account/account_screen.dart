@@ -5,192 +5,157 @@ import '../../app/providers.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
-import '../../core/strings.dart';
-import '../../core/utils/launchers.dart';
-import '../../core/design/tones.dart';
 import '../../core/design/typography.dart';
-import '../../core/widgets/illustrations.dart';
-import '../../core/widgets/wex_kit.dart';
-import '../../core/widgets/wex_widgets.dart';
+import '../../core/utils/launchers.dart';
+import '../../ui/app_scaffold.dart';
+import '../../ui/app_top_bar.dart';
+import '../../ui/buttons.dart';
+import '../../ui/icons.dart';
 
-const _appVersion = '1.0.7';
+const _appVersion = '1.1.0';
 
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final auth = ref.watch(authControllerProvider);
     final shop = ref.watch(shopProvider).valueOrNull;
-    return Scaffold(
-      appBar: AppBar(title: const Text(Ar.myAccount)),
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final chevron = rtl ? LucideIcons.chevronLeft : LucideIcons.chevronRight;
+
+    return AppScaffold(
+      appBar: const AppTopBar(title: 'حسابي', showBack: false),
       body: ListView(
-        padding: const EdgeInsets.all(Sp.page),
+        padding: AppScaffold.listPadding(context, top: 8),
         children: [
-          // The one hero moment: user card on the brand gradient.
           if (auth.isAuthenticated)
-            HeroCard(
-                child: Row(children: [
+            Row(children: [
               Container(
-                  width: 52,
-                  height: 52,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle),
-                  child: Text(
-                      auth.user!.name.isNotEmpty
-                          ? auth.user!.name.characters.first
-                          : 'و',
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800))),
-              const SizedBox(width: Sp.x6),
-              Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    Text(auth.user!.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 17)),
-                    const SizedBox(height: 2),
-                    LtrText(auth.user!.email,
-                        style: const TextStyle(
-                            color: WexColors.onDarkMuted, fontSize: 13)),
-                  ])),
-            ]))
-          else
-            SurfaceCard(
-                soft: true,
-                child: Column(children: [
-                  const WexIllustration(IllustrationKind.box, size: 96),
-                  const SizedBox(height: 8),
-                  const Text(Ar.signedOut,
-                      style: TextStyle(color: WexColors.textSecondary)),
-                  const SizedBox(height: 14),
-                  WexButton(Ar.signIn, onPressed: () => context.push('/login')),
-                ])),
-          if (shop?.whatsapp.isNotEmpty ?? false) ...[
-            const SizedBox(height: Sp.x6),
-            SurfaceCard(
-              onTap: () => openWhatsApp(shop.whatsapp),
-              child: Row(children: [
-                const TintIcon(Icons.chat_rounded, tone: Tone.success),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(Ar.contactUs,
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700, fontSize: 15)),
-                        if (shop!.workingHours.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(
-                                '${Ar.workingHoursLabel}: ${shop.workingHours}',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: WexText.caption),
-                          ),
-                      ]),
+                width: 56,
+                height: 56,
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(color: WexColors.ink900, shape: BoxShape.circle),
+                child: Text(
+                  auth.user!.name.isNotEmpty ? auth.user!.name.characters.first : 'و',
+                  style: WexText.titleL.copyWith(color: WexColors.paper),
                 ),
-                const StatusPill(Ar.whatsappLabel,
-                    tone: Tone.success, dot: false),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(auth.user!.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: WexText.titleM),
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: Text(auth.user!.email, maxLines: 1, overflow: TextOverflow.ellipsis, style: WexText.bodyS),
+                    ),
+                  ),
+                ]),
+              ),
+            ])
+          else
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: WexColors.surface,
+                borderRadius: BorderRadius.circular(Radii.card),
+                border: Border.all(color: WexColors.line),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('أنت غير مسجّل', style: WexText.titleM),
+                const SizedBox(height: 4),
+                const Text('سجّل الدخول لمتابعة طلباتك وحفظ بياناتك.', style: WexText.bodyS),
+                const SizedBox(height: 16),
+                PrimaryButton('تسجيل الدخول', onPressed: () => context.push('/login')),
               ]),
             ),
-          ],
-          const SizedBox(height: Sp.x7),
-          _group(Ar.sectionOrders, [
-            _item(Icons.receipt_long_rounded, Ar.sectionOrders,
-                () => context.go('/orders')),
-            _item(Icons.notifications_rounded, Ar.notifications,
-                () => context.push('/notifications')),
-            if (auth.isAuthenticated)
-              _item(Icons.notifications_active_rounded, Ar.notifSettings,
-                  () => context.push('/push-preferences')),
+          const SizedBox(height: 24),
+          const _GroupTitle('طلباتي'),
+          _Group(chevron: chevron, items: [
+            (LucideIcons.receipt, 'طلباتي', () => context.go('/orders')),
+            (LucideIcons.bell, 'الإشعارات', () => context.push('/notifications')),
+            if (auth.isAuthenticated) (LucideIcons.bellRing, 'إعدادات الإشعارات', () => context.push('/push-preferences')),
           ]),
-          const SizedBox(height: Sp.x6),
-          _group(Ar.sectionSupport, [
-            _item(
-                Icons.help_outline_rounded, Ar.faq, () => context.push('/faq')),
-            _item(Icons.description_outlined, Ar.terms,
-                () => context.push('/pages/terms')),
-            _item(Icons.privacy_tip_outlined, Ar.privacy,
-                () => context.push('/pages/privacy')),
-            _item(Icons.assignment_return_outlined, Ar.returns,
-                () => context.push('/pages/returns')),
+          const SizedBox(height: 24),
+          const _GroupTitle('الدعم والسياسات'),
+          _Group(chevron: chevron, items: [
+            if (shop?.whatsapp.isNotEmpty ?? false) (LucideIcons.messageCircle, 'تواصل معنا عبر واتساب', () => openWhatsApp(shop!.whatsapp)),
+            (LucideIcons.circleHelp, 'الأسئلة الشائعة', () => context.push('/faq')),
+            (LucideIcons.fileText, 'الشروط والأحكام', () => context.push('/pages/terms')),
+            (LucideIcons.shieldCheck, 'سياسة الخصوصية', () => context.push('/pages/privacy')),
+            (LucideIcons.undo2, 'سياسة الاستلام والإرجاع', () => context.push('/pages/returns')),
           ]),
           if (auth.isAuthenticated) ...[
-            const SizedBox(height: Sp.x6),
-            SurfaceCard(
-                padding: EdgeInsets.zero,
-                child: Material(
-                    type: MaterialType.transparency,
-                    child: _item(
-                        Icons.logout_rounded,
-                        Ar.logout,
-                        () =>
-                            ref.read(authControllerProvider.notifier).logout(),
-                        tint: WexColors.danger))),
+            const SizedBox(height: 24),
+            _Group(chevron: null, danger: true, items: [
+              (LucideIcons.logOut, 'تسجيل الخروج', () => ref.read(authControllerProvider.notifier).logout()),
+            ]),
           ],
-          const SizedBox(height: Sp.x8),
-          Center(
-              child: Text(Ar.versionLine(_appVersion),
-                  style: const TextStyle(
-                      color: WexColors.disabled, fontSize: 12))),
-          const SizedBox(height: Sp.x6),
+          const SizedBox(height: 24),
+          Center(child: Text('ويكس تكنولوجي · الإصدار $_appVersion', style: WexText.label)),
         ],
       ),
     );
   }
+}
 
-  Widget _group(String title, List<Widget> items) {
-    final children = <Widget>[];
-    for (var i = 0; i < items.length; i++) {
-      children.add(items[i]);
-      if (i < items.length - 1) {
-        children.add(const Divider(height: 1, indent: 70));
-      }
-    }
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Padding(
-          padding: const EdgeInsets.only(right: 4, bottom: 8),
-          child: Text(title,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
-                  color: WexColors.textSecondary))),
-      SurfaceCard(
-          padding: EdgeInsets.zero,
-          child: Material(
-              type: MaterialType.transparency,
-              child: Column(children: children))),
-    ]);
-  }
+class _GroupTitle extends StatelessWidget {
+  final String text;
+  const _GroupTitle(this.text);
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(text, style: WexText.label),
+      );
+}
 
-  Widget _item(IconData icon, String label, VoidCallback onTap,
-          {Color tint = WexColors.primary}) =>
-      ListTile(
-        dense: false,
-        contentPadding: const EdgeInsetsDirectional.only(start: 14, end: 8),
-        leading: TintIcon(icon,
-            size: 38,
-            tone: tint == WexColors.danger
-                ? Tone.danger
-                : (tint == WexColors.success ? Tone.success : Tone.brand)),
-        title: Text(label,
-            style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: tint == WexColors.danger
-                    ? WexColors.danger
-                    : WexColors.textPrimary)),
-        trailing:
-            const Icon(Icons.chevron_left_rounded, color: WexColors.disabled),
-        onTap: onTap,
+class _Group extends StatelessWidget {
+  final List<(IconData, String, VoidCallback)> items;
+  final IconData? chevron;
+  final bool danger;
+  const _Group({required this.items, required this.chevron, this.danger = false});
+
+  @override
+  Widget build(BuildContext context) => Container(
+        decoration: BoxDecoration(
+          color: WexColors.surface,
+          borderRadius: BorderRadius.circular(Radii.card),
+          border: Border.all(color: WexColors.line),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Material(
+          color: WexColors.surface,
+          child: Column(children: [
+            for (var i = 0; i < items.length; i++) ...[
+              if (i > 0) const Divider(indent: 68),
+              InkWell(
+                onTap: items[i].$3,
+                child: SizedBox(
+                  height: 56,
+                  child: Row(children: [
+                    const SizedBox(width: 12),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: const BoxDecoration(color: WexColors.sunken, shape: BoxShape.circle),
+                      child: Icon(items[i].$1, size: 20, color: danger ? WexColors.danger : WexColors.ink900),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(items[i].$2,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: WexText.body.copyWith(color: danger ? WexColors.danger : WexColors.ink900)),
+                    ),
+                    if (chevron != null) Icon(chevron, size: 20, color: WexColors.disabled),
+                    const SizedBox(width: 12),
+                  ]),
+                ),
+              ),
+            ],
+          ]),
+        ),
       );
 }
