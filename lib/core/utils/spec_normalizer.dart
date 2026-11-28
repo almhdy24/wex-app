@@ -122,25 +122,41 @@ List<SpecRow> buildSpecRows(Map<String, String> specs) {
   return rows;
 }
 
-/// Short chips for a product card (CPU · RAM · Storage).
+/// Short chips for a product card / details header: CPU · RAM · storage.
 List<String> specChips(Map<String, String> specs) {
   final norm = <String, String>{};
   specs.forEach((k, v) => norm[_canonicalKey(k)] = normalizeSpecValue(v));
-  String? shorten(String? v, {bool cpu = false}) {
+
+  String? cpu(String? v) {
     if (v == null || v.isEmpty) return null;
-    if (cpu) {
-      final m = RegExp(r'i[3579]').firstMatch(v) ??
-          RegExp(r'(Ryzen\s?\d)', caseSensitive: false).firstMatch(v);
-      return m?.group(0) ?? (v.length > 10 ? v.substring(0, 10) : v);
-    }
-    final m = RegExp(r'\d+\s?(GB|TB|جيجابايت|تيرا)', caseSensitive: false)
-        .firstMatch(v);
-    return m?.group(0)?.replaceAll('جيجابايت', 'GB') ?? v;
+    final m = RegExp(r'i[3579]', caseSensitive: false).firstMatch(v) ??
+        RegExp(r'Ryzen\s?\d', caseSensitive: false).firstMatch(v) ??
+        RegExp(r'\bM[1-4]\b').firstMatch(v);
+    return m?.group(0)?.replaceFirstMapped(RegExp(r'^I(?=[3579])'), (_) => 'i') ??
+        (v.length > 12 ? v.substring(0, 12) : v);
+  }
+
+  String? size(String? v, {bool withType = false}) {
+    if (v == null || v.isEmpty) return null;
+    final unit = RegExp(r'(\d+)\s?(GB|TB|جيجابايت|تيرا)?', caseSensitive: false).firstMatch(v);
+    if (unit == null) return null;
+    final n = int.tryParse(unit.group(1)!) ?? 0;
+    var u = (unit.group(2) ?? '').toUpperCase();
+    if (u == 'جيجابايت') u = 'GB';
+    if (u == 'تيرا') u = 'TB';
+    if (u.isEmpty) u = n >= 64 || n <= 0 ? 'GB' : 'GB';
+    final base = '$n$u';
+    if (!withType) return base;
+    final type = RegExp(r'SSD|HDD|NVME', caseSensitive: false).firstMatch(v)?.group(0)?.toUpperCase();
+    return type == null ? base : '$base $type';
   }
 
   return [
-    shorten(norm['المعالج'], cpu: true),
-    shorten(norm['الرام']),
-    shorten(norm['التخزين']),
+    cpu(norm['المعالج']),
+    size(norm['الرام']),
+    size(norm['التخزين'], withType: true),
   ].whereType<String>().toList();
 }
+
+/// "i5 · 8GB · 256GB SSD" (empty when no specs).
+String specLine(Map<String, String> specs) => specChips(specs).join(' · ');

@@ -83,11 +83,7 @@ class HomeScreen extends ConsumerWidget {
               loading: () => SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: Sp.page),
                 sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: Sp.x6,
-                      crossAxisSpacing: Sp.x6,
-                      childAspectRatio: 0.70),
+                  gridDelegate: productGridDelegate(MediaQuery.of(context).size.width),
                   delegate: SliverChildBuilderDelegate(
                       (_, __) => const ProductCardSkeleton(),
                       childCount: 4),
@@ -98,11 +94,7 @@ class HomeScreen extends ConsumerWidget {
               data: (page) => SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: Sp.page),
                 sliver: SliverGrid(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: Sp.x6,
-                      crossAxisSpacing: Sp.x6,
-                      childAspectRatio: 0.70),
+                  gridDelegate: productGridDelegate(MediaQuery.of(context).size.width),
                   delegate: SliverChildBuilderDelegate(
                     (context, i) => FadeInUp(
                         index: i,
@@ -117,7 +109,11 @@ class HomeScreen extends ConsumerWidget {
             ),
             // "Can't find it?" WhatsApp card (always useful; shown prominently when catalogue is small)
             SliverToBoxAdapter(
-                child: _HelpCard(whatsapp: shop?.whatsapp ?? '')),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, 0),
+                child: WexHelpCard(whatsapp: shop?.whatsapp ?? ''),
+              ),
+            ),
             SliverToBoxAdapter(child: _StoreInfo(shop: shop)),
             const SliverToBoxAdapter(child: SizedBox(height: Sp.x9)),
           ],
@@ -304,49 +300,6 @@ class _CategoryTile extends StatelessWidget {
           ]),
         ),
       );
-}
-
-class _HelpCard extends StatelessWidget {
-  final String whatsapp;
-  const _HelpCard({required this.whatsapp});
-  @override
-  Widget build(BuildContext context) {
-    if (whatsapp.isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, 0),
-      child: WexCard(
-        child: Row(children: [
-          Container(
-              width: 46,
-              height: 46,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                  color: WexColors.successBg,
-                  borderRadius: BorderRadius.circular(14)),
-              child: const Icon(Icons.chat_rounded, color: WexColors.success)),
-          const SizedBox(width: Sp.x6),
-          Expanded(
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                Text(Ar.notFoundTitle,
-                    style: TextStyle(fontWeight: FontWeight.w800)),
-                SizedBox(height: 2),
-                Text(Ar.notFoundBody,
-                    style: TextStyle(
-                        color: WexColors.textSecondary,
-                        fontSize: 12.5,
-                        height: 1.5)),
-              ])),
-          const SizedBox(width: 8),
-          IconButton(
-              onPressed: () => openWhatsApp(whatsapp, text: Ar.waLooking),
-              icon: const Icon(Icons.arrow_back_rounded,
-                  color: WexColors.primary)),
-        ]),
-      ),
-    );
-  }
 }
 
 class _StoreInfo extends StatelessWidget {

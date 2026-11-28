@@ -34,6 +34,19 @@ class CartController extends StateNotifier<List<CartItem>> {
   int get totalItems => state.fold(0, (s, i) => s + i.quantity);
   int get subtotalSdg => state.fold(0, (s, i) => s + i.lineTotal);
 
+  /// Quick-add from a list card (no detail fetch needed).
+  void addListItem(ProductListItem p, {int quantity = 1}) {
+    final idx = state.indexWhere((e) => e.productId == p.id);
+    if (idx == -1) {
+      state = [...state, CartItem.fromListItem(p, quantity: quantity)];
+    } else {
+      final item = state[idx];
+      final q = (item.quantity + quantity).clamp(1, item.maxQty);
+      state = [...state]..[idx] = item.copyWith(quantity: q);
+    }
+    _persist();
+  }
+
   void addProduct(ProductDetail p, {int quantity = 1}) {
     final idx = state.indexWhere((e) => e.productId == p.id);
     if (idx == -1) {

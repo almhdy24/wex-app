@@ -53,6 +53,14 @@ class CartItem {
         maxQty: ((j['max_qty'] ?? 10) as num).round(),
       );
 
+  factory CartItem.fromListItem(ProductListItem p, {int quantity = 1}) {
+    final max = p.stockStatus == StockStatus.lowStock ? 2 : 10;
+    return CartItem(
+      productId: p.id, slug: p.slug, name: p.name, priceSdg: p.priceSdg,
+      thumbPath: p.thumbPath ?? p.imagePath, quantity: quantity.clamp(1, max), maxQty: max,
+    );
+  }
+
   factory CartItem.fromProduct(ProductDetail p, {int quantity = 1}) {
     final max = p.stockStatus == StockStatus.lowStock ? 2 : 10;
     return CartItem(

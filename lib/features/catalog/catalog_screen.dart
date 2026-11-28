@@ -8,6 +8,8 @@ import '../../core/design/spacing.dart';
 import '../../core/widgets/product_card.dart';
 import '../../core/widgets/cart_button.dart';
 import '../../core/widgets/shimmer.dart';
+import '../../core/widgets/wex_widgets.dart';
+import '../../app/providers.dart';
 import '../../data/repositories/product_repository.dart';
 import 'catalog_controller.dart';
 
@@ -216,11 +218,7 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     if (state.loading) {
       return GridView.builder(
         padding: const EdgeInsets.all(Sp.page),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: Sp.x6,
-            crossAxisSpacing: Sp.x6,
-            childAspectRatio: 0.70),
+        gridDelegate: productGridDelegate(MediaQuery.of(context).size.width),
         itemCount: 6,
         itemBuilder: (_, __) => const ProductCardSkeleton(),
       );
@@ -232,31 +230,43 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     if (state.items.isEmpty) {
       return const _Message(icon: Icons.search_off, text: Ar.noResults);
     }
+    final width = MediaQuery.of(context).size.width;
+    final whatsapp = ref.watch(shopProvider).valueOrNull?.whatsapp ?? '';
     return RefreshIndicator(
       onRefresh: ctrl.refresh,
-      child: GridView.builder(
+      child: CustomScrollView(
         controller: _scrollCtrl,
-        padding: const EdgeInsets.all(Sp.page),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: Sp.x6,
-            crossAxisSpacing: Sp.x6,
-            childAspectRatio: 0.70),
-        itemCount: state.items.length + (state.hasMore ? 2 : 0),
-        itemBuilder: (context, i) {
-          if (i >= state.items.length) {
-            return const Center(
-                child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: CircularProgressIndicator()));
-          }
-          final p = state.items[i];
-          return FadeInUp(
-              index: i,
-              child: ProductCard(
-                  product: p,
-                  onTap: () => context.push('/products/${p.slug}')));
-        },
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x3, Sp.page, 0),
+            sliver: SliverGrid(
+              gridDelegate: productGridDelegate(width),
+              delegate: SliverChildBuilderDelegate(
+                (context, i) {
+                  final p = state.items[i];
+                  return FadeInUp(
+                    index: i,
+                    child: ProductCard(product: p, onTap: () => context.push('/products/${p.slug}')),
+                  );
+                },
+                childCount: state.items.length,
+              ),
+            ),
+          ),
+          if (state.hasMore)
+            const SliverToBoxAdapter(
+              child: Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator())),
+            ),
+          // Few results must never look like a dead-empty screen.
+          if (!state.hasMore && state.items.length <= 2)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x8, Sp.page, 0),
+                child: WexHelpCard(whatsapp: whatsapp),
+              ),
+            ),
+          const SliverToBoxAdapter(child: SizedBox(height: Sp.x10)),
+        ],
       ),
     );
   }

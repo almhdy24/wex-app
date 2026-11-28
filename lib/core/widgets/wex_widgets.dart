@@ -3,6 +3,9 @@ import 'package:flutter/services.dart';
 import '../design/colors.dart';
 import '../design/spacing.dart';
 import '../strings.dart';
+import '../design/typography.dart';
+import '../utils/launchers.dart';
+import 'whatsapp_glyph.dart';
 
 /// Card with hairline border + soft layered shadow.
 class WexCard extends StatelessWidget {
@@ -250,7 +253,35 @@ class LtrText extends StatelessWidget {
         maxLines: maxLines,
         overflow: maxLines != null ? TextOverflow.ellipsis : null,
         textDirection: _isLatin ? TextDirection.ltr : TextDirection.rtl,
-        textAlign: TextAlign.start,
+        textAlign: _isLatin ? TextAlign.right : TextAlign.start,
         style: style,
       );
+}
+
+
+/// "Can't find it?" card → WhatsApp request. Shared by home, store and empty states.
+class WexHelpCard extends StatelessWidget {
+  final String whatsapp;
+  const WexHelpCard({super.key, required this.whatsapp});
+  @override
+  Widget build(BuildContext context) {
+    if (whatsapp.isEmpty) return const SizedBox.shrink();
+    return WexCard(
+      onTap: () => openWhatsApp(whatsapp, text: Ar.waLooking),
+      child: Row(children: [
+        Container(
+          width: 46, height: 46, alignment: Alignment.center,
+          decoration: BoxDecoration(color: WexColors.successBg, borderRadius: BorderRadius.circular(14)),
+          child: const WhatsAppGlyph(size: 24, color: WexColors.success),
+        ),
+        const SizedBox(width: Sp.x6),
+        const Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(Ar.notFoundTitle, style: TextStyle(fontWeight: FontWeight.w700)),
+          SizedBox(height: 2),
+          Text(Ar.notFoundBody, style: WexText.caption),
+        ])),
+        const Icon(Icons.arrow_back_rounded, color: WexColors.primary),
+      ]),
+    );
+  }
 }
