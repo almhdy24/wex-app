@@ -9,7 +9,7 @@ import '../../core/strings.dart';
 import '../../core/utils/launchers.dart';
 import '../../core/widgets/wex_widgets.dart';
 
-const _appVersion = '1.0.5';
+const _appVersion = '1.0.6';
 
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
