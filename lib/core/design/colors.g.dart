@@ -26,6 +26,7 @@ abstract final class WexColors {
   static const dangerBg = Color(0xFFFCEBEA);
   static const onInkMuted = Color(0xFFB9C8CF);
   static const shadow = Color(0xFF0B1F2A);
+  static const whatsapp = Color(0xFF25D366);
 
   // Legacy aliases (pre-v2 names).
   static const primary = teal600;
