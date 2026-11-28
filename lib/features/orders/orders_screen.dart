@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/strings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
@@ -15,32 +16,40 @@ class OrdersScreen extends ConsumerWidget {
     final authed = ref.watch(authControllerProvider).isAuthenticated;
     if (!authed) {
       return Scaffold(
-        appBar: AppBar(title: const Text('طلباتي')),
+        appBar: AppBar(title: const Text(Ar.navOrders)),
         body: Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.receipt_long, size: 48, color: WexColors.disabled),
             const SizedBox(height: 12),
-            const Text('سجّل الدخول لعرض طلباتك', style: TextStyle(color: WexColors.textSecondary)),
+            const Text(Ar.ordersSignedOut,
+                style: TextStyle(color: WexColors.textSecondary)),
             const SizedBox(height: 16),
-            FilledButton(onPressed: () => context.push('/login'), child: const Text('تسجيل الدخول')),
+            FilledButton(
+                onPressed: () => context.push('/login'),
+                child: const Text(Ar.signIn)),
           ]),
         ),
       );
     }
     final orders = ref.watch(ordersListProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('طلباتي')),
+      appBar: AppBar(title: const Text(Ar.navOrders)),
       body: orders.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            const Text('تعذّر تحميل الطلبات', style: TextStyle(color: WexColors.textSecondary)),
+            const Text(Ar.ordersLoadError,
+                style: TextStyle(color: WexColors.textSecondary)),
             const SizedBox(height: 12),
-            OutlinedButton(onPressed: () => ref.invalidate(ordersListProvider), child: const Text('إعادة المحاولة')),
+            OutlinedButton(
+                onPressed: () => ref.invalidate(ordersListProvider),
+                child: const Text(Ar.retry)),
           ]),
         ),
         data: (list) => list.isEmpty
-            ? const Center(child: Text('لا توجد طلبات بعد', style: TextStyle(color: WexColors.textSecondary)))
+            ? const Center(
+                child: Text(Ar.ordersEmpty,
+                    style: TextStyle(color: WexColors.textSecondary)))
             : RefreshIndicator(
                 onRefresh: () async => ref.invalidate(ordersListProvider),
                 child: ListView.separated(
@@ -69,20 +78,34 @@ class _OrderCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: WexColors.white,
           borderRadius: BorderRadius.circular(Radii.card),
-          boxShadow: const [BoxShadow(color: Color(0x0F061A55), blurRadius: 6, offset: Offset(0, 2))],
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x0F061A55), blurRadius: 6, offset: Offset(0, 2))
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              Directionality(textDirection: TextDirection.ltr, child: Text(order.orderNumber,
-                  style: const TextStyle(fontWeight: FontWeight.w800, fontFeatures: [FontFeature.tabularFigures()]))),
+              Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: Text(order.orderNumber,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontFeatures: [FontFeature.tabularFigures()]))),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: chip.$2, borderRadius: BorderRadius.circular(Radii.pill)),
-                child: Text(order.statusLabel.isEmpty ? chip.$1 : order.statusLabel,
-                    style: TextStyle(color: chip.$3, fontSize: 12, fontWeight: FontWeight.w700)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                    color: chip.$2,
+                    borderRadius: BorderRadius.circular(Radii.pill)),
+                child: Text(
+                    order.statusLabel.isEmpty ? chip.$1 : order.statusLabel,
+                    style: TextStyle(
+                        color: chip.$3,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700)),
               ),
             ]),
             const SizedBox(height: 10),
@@ -90,7 +113,11 @@ class _OrderCard extends StatelessWidget {
               PriceText(order.totalSdg, size: 16),
               const Spacer(),
               if (order.status == OrderStatus.pendingPayment)
-                const Text('رفع إشعار التحويل', style: TextStyle(color: WexColors.royal, fontWeight: FontWeight.w700, fontSize: 13)),
+                const Text(Ar.uploadProof,
+                    style: TextStyle(
+                        color: WexColors.royal,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13)),
             ]),
           ],
         ),
@@ -101,11 +128,34 @@ class _OrderCard extends StatelessWidget {
 
 /// (label, bg, fg) per status.
 (String, Color, Color) statusChip(OrderStatus s) => switch (s) {
-      OrderStatus.pendingPayment => ('بانتظار الدفع', WexColors.warningBg, WexColors.warning),
-      OrderStatus.paymentReview => ('مراجعة التحويل', WexColors.ice, WexColors.royal),
-      OrderStatus.confirmed || OrderStatus.readyForPickup || OrderStatus.outForDelivery => ('مؤكد', WexColors.ice, WexColors.royal),
-      OrderStatus.completed => ('مكتمل', WexColors.successBg, WexColors.success),
-      OrderStatus.cancelled => ('ملغي', WexColors.dangerBg, WexColors.danger),
-      OrderStatus.expired => ('منتهي', WexColors.dangerBg, WexColors.danger),
+      OrderStatus.pendingPayment => (
+          Ar.stPending,
+          WexColors.warningBg,
+          WexColors.warning
+        ),
+      OrderStatus.paymentReview => (
+          Ar.stReview,
+          WexColors.ice,
+          WexColors.royal
+        ),
+      OrderStatus.confirmed ||
+      OrderStatus.readyForPickup ||
+      OrderStatus.outForDelivery =>
+        (Ar.stConfirmed, WexColors.ice, WexColors.royal),
+      OrderStatus.completed => (
+          Ar.stCompleted,
+          WexColors.successBg,
+          WexColors.success
+        ),
+      OrderStatus.cancelled => (
+          Ar.stCancelled,
+          WexColors.dangerBg,
+          WexColors.danger
+        ),
+      OrderStatus.expired => (
+          Ar.stExpired,
+          WexColors.dangerBg,
+          WexColors.danger
+        ),
       _ => ('—', WexColors.ice, WexColors.textSecondary),
     };

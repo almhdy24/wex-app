@@ -1,7 +1,17 @@
 import '../../app/env.dart';
 
 /// Order status (OrderStateMachine) + Arabic labels.
-enum OrderStatus { pendingPayment, paymentReview, confirmed, readyForPickup, outForDelivery, completed, cancelled, expired, unknown }
+enum OrderStatus {
+  pendingPayment,
+  paymentReview,
+  confirmed,
+  readyForPickup,
+  outForDelivery,
+  completed,
+  cancelled,
+  expired,
+  unknown
+}
 
 OrderStatus orderStatusFrom(String? s) => switch (s) {
       'pending_payment' => OrderStatus.pendingPayment,
@@ -16,7 +26,15 @@ OrderStatus orderStatusFrom(String? s) => switch (s) {
     };
 
 /// payment.state (PaymentStateService).
-enum PaymentState { awaitingProof, underReview, rejected, approved, expired, notRequired, unknown }
+enum PaymentState {
+  awaitingProof,
+  underReview,
+  rejected,
+  approved,
+  expired,
+  notRequired,
+  unknown
+}
 
 PaymentState paymentStateFrom(String? s) => switch (s) {
       'awaiting_proof' => PaymentState.awaitingProof,
@@ -34,13 +52,19 @@ class PaymentProof {
   final String? reviewNote;
   final String imageUrl; // relative API path (authed)
   final DateTime? uploadedAt;
-  const PaymentProof({required this.id, required this.status, this.reviewNote, required this.imageUrl, this.uploadedAt});
+  const PaymentProof(
+      {required this.id,
+      required this.status,
+      this.reviewNote,
+      required this.imageUrl,
+      this.uploadedAt});
   factory PaymentProof.fromJson(Map<String, dynamic> j) => PaymentProof(
         id: (j['id'] ?? 0) as int,
         status: (j['status'] ?? '').toString(),
         reviewNote: j['review_note']?.toString(),
         imageUrl: Env.assetUrl((j['image_url'] ?? '').toString()),
-        uploadedAt: DateTime.tryParse((j['uploaded_at'] ?? j['created_at'] ?? '').toString()),
+        uploadedAt: DateTime.tryParse(
+            (j['uploaded_at'] ?? j['created_at'] ?? '').toString()),
       );
 }
 
@@ -48,10 +72,13 @@ class PaymentInfo {
   final PaymentState state;
   final bool canUpload;
   final PaymentProof? latestProof;
-  const PaymentInfo({required this.state, required this.canUpload, this.latestProof});
+  const PaymentInfo(
+      {required this.state, required this.canUpload, this.latestProof});
   factory PaymentInfo.fromJson(Map<String, dynamic>? j) {
     j ??= {};
-    final lp = (j['latest_proof'] is Map) ? Map<String, dynamic>.from(j['latest_proof']) : null;
+    final lp = (j['latest_proof'] is Map)
+        ? Map<String, dynamic>.from(j['latest_proof'])
+        : null;
     return PaymentInfo(
       state: paymentStateFrom(j['state']?.toString()),
       canUpload: j['can_upload'] == true,
@@ -65,7 +92,11 @@ class PaymentAccount {
   final String accountName;
   final String accountNumber;
   final String? notes;
-  const PaymentAccount({required this.bankName, required this.accountName, required this.accountNumber, this.notes});
+  const PaymentAccount(
+      {required this.bankName,
+      required this.accountName,
+      required this.accountNumber,
+      this.notes});
   factory PaymentAccount.fromJson(Map<String, dynamic> j) => PaymentAccount(
         bankName: (j['bank_name'] ?? '').toString(),
         accountName: (j['account_name'] ?? '').toString(),
@@ -78,7 +109,8 @@ class OrderItem {
   final String name;
   final int quantity;
   final int lineTotalSdg;
-  const OrderItem({required this.name, required this.quantity, required this.lineTotalSdg});
+  const OrderItem(
+      {required this.name, required this.quantity, required this.lineTotalSdg});
   factory OrderItem.fromJson(Map<String, dynamic> j) => OrderItem(
         name: (j['product_name'] ?? j['name'] ?? '').toString(),
         quantity: ((j['quantity'] ?? 1) as num).round(),
@@ -105,9 +137,16 @@ class OrderListItem {
   final PaymentState paymentState;
   final int totalSdg;
   final DateTime? createdAt;
-  const OrderListItem({required this.orderNumber, required this.status, required this.statusLabel, required this.paymentState, required this.totalSdg, this.createdAt});
+  const OrderListItem(
+      {required this.orderNumber,
+      required this.status,
+      required this.statusLabel,
+      required this.paymentState,
+      required this.totalSdg,
+      this.createdAt});
   factory OrderListItem.fromJson(Map<String, dynamic> j) {
-    final pay = (j['payment'] is Map) ? Map<String, dynamic>.from(j['payment']) : null;
+    final pay =
+        (j['payment'] is Map) ? Map<String, dynamic>.from(j['payment']) : null;
     return OrderListItem(
       orderNumber: (j['order_number'] ?? '').toString(),
       status: orderStatusFrom(j['status']?.toString()),
@@ -160,18 +199,27 @@ class OrderDetail {
         status: orderStatusFrom(j['status']?.toString()),
         statusLabel: (j['status_label'] ?? '').toString(),
         deliveryType: (j['delivery_type'] ?? 'pickup').toString(),
-        payment: PaymentInfo.fromJson((j['payment'] is Map) ? Map<String, dynamic>.from(j['payment']) : null),
+        payment: PaymentInfo.fromJson((j['payment'] is Map)
+            ? Map<String, dynamic>.from(j['payment'])
+            : null),
         subtotalSdg: ((j['subtotal_sdg'] ?? 0) as num).round(),
         discountSdg: ((j['discount_sdg'] ?? 0) as num).round(),
-        deliveryFeeSdg: ((j['delivery_fee_sdg'] ?? j['shipping_fee_sdg'] ?? 0) as num).round(),
-        totalSdg: ((j['total_sdg'] ?? j['total_amount_sdg'] ?? 0) as num).round(),
-        lockExpiresAt: DateTime.tryParse((j['lock_expires_at'] ?? j['expires_at'] ?? '').toString()),
+        deliveryFeeSdg:
+            ((j['delivery_fee_sdg'] ?? j['shipping_fee_sdg'] ?? 0) as num)
+                .round(),
+        totalSdg:
+            ((j['total_sdg'] ?? j['total_amount_sdg'] ?? 0) as num).round(),
+        lockExpiresAt: DateTime.tryParse(
+            (j['lock_expires_at'] ?? j['expires_at'] ?? '').toString()),
         secondsRemaining: ((j['seconds_remaining'] ?? 0) as num).round(),
         paymentAccounts: (j['payment_accounts'] as List? ?? [])
-            .map((e) => PaymentAccount.fromJson(Map<String, dynamic>.from(e))).toList(),
+            .map((e) => PaymentAccount.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
         items: (j['items'] as List? ?? [])
-            .map((e) => OrderItem.fromJson(Map<String, dynamic>.from(e))).toList(),
+            .map((e) => OrderItem.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
         timeline: (j['timeline'] as List? ?? [])
-            .map((e) => TimelineEvent.fromJson(Map<String, dynamic>.from(e))).toList(),
+            .map((e) => TimelineEvent.fromJson(Map<String, dynamic>.from(e)))
+            .toList(),
       );
 }

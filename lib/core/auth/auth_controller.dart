@@ -10,8 +10,8 @@ import 'token_store.dart';
 /// Root providers.
 final serverTimeApiProvider = Provider<ApiClient>((ref) => ApiClient());
 final tokenStoreProvider = Provider<TokenStore>((ref) => TokenStore());
-final authRepositoryProvider =
-    Provider<AuthRepository>((ref) => AuthRepository(ref.read(serverTimeApiProvider)));
+final authRepositoryProvider = Provider<AuthRepository>(
+    (ref) => AuthRepository(ref.read(serverTimeApiProvider)));
 
 class AuthState {
   final User? user;
@@ -21,7 +21,11 @@ class AuthState {
 
   bool get isAuthenticated => user != null;
 
-  AuthState copyWith({User? user, bool? loading, bool? bootstrapped, bool clearUser = false}) =>
+  AuthState copyWith(
+          {User? user,
+          bool? loading,
+          bool? bootstrapped,
+          bool clearUser = false}) =>
       AuthState(
         user: clearUser ? null : (user ?? this.user),
         loading: loading ?? this.loading,
@@ -29,8 +33,8 @@ class AuthState {
       );
 }
 
-final authControllerProvider =
-    StateNotifierProvider<AuthController, AuthState>((ref) => AuthController(ref));
+final authControllerProvider = StateNotifierProvider<AuthController, AuthState>(
+    (ref) => AuthController(ref));
 
 class AuthController extends StateNotifier<AuthState> {
   final Ref _ref;
@@ -68,10 +72,12 @@ class AuthController extends StateNotifier<AuthState> {
 
   Future<void> requestEmailOtp(String email) => _repo.requestEmailOtp(email);
 
-  Future<void> verifyEmailOtp({required String email, required String code, String? name}) async {
+  Future<void> verifyEmailOtp(
+      {required String email, required String code, String? name}) async {
     state = state.copyWith(loading: true);
     try {
-      final res = await _repo.verifyEmailOtp(email: email, code: code, name: name);
+      final res =
+          await _repo.verifyEmailOtp(email: email, code: code, name: name);
       _apply(res.tokens, res.user);
     } finally {
       state = state.copyWith(loading: false);
@@ -91,7 +97,8 @@ class AuthController extends StateNotifier<AuthState> {
   /// Native Google sign-in: obtains an ID token for the backend's web client.
   Future<bool> signInWithGoogle() async {
     final google = GoogleSignIn(
-      serverClientId: '106015853692-ktr3bm0f597u8b7ad5dfimrps8ljna0t.apps.googleusercontent.com',
+      serverClientId:
+          '106015853692-ktr3bm0f597u8b7ad5dfimrps8ljna0t.apps.googleusercontent.com',
       scopes: const ['email', 'profile'],
     );
     try {

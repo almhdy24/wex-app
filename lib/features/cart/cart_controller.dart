@@ -26,7 +26,8 @@ class CartController extends StateNotifier<List<CartItem>> {
   Future<void> _persist() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_kCartKey, jsonEncode(state.map((e) => e.toJson()).toList()));
+      await prefs.setString(
+          _kCartKey, jsonEncode(state.map((e) => e.toJson()).toList()));
     } catch (_) {}
   }
 
@@ -73,4 +74,5 @@ class CartController extends StateNotifier<List<CartItem>> {
 }
 
 final cartControllerProvider =
-    StateNotifierProvider<CartController, List<CartItem>>((ref) => CartController());
+    StateNotifierProvider<CartController, List<CartItem>>(
+        (ref) => CartController());

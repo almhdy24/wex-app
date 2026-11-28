@@ -1,4 +1,5 @@
 import '../../app/env.dart';
+import '../../core/strings.dart';
 
 enum StockStatus { inStock, lowStock, outOfStock, unknown }
 
@@ -41,7 +42,8 @@ class ProductListItem {
   bool get isOutOfStock => stockStatus == StockStatus.outOfStock;
 
   factory ProductListItem.fromJson(Map<String, dynamic> j) {
-    final img = (j['image'] is Map) ? Map<String, dynamic>.from(j['image']) : const {};
+    final img =
+        (j['image'] is Map) ? Map<String, dynamic>.from(j['image']) : const {};
     return ProductListItem(
       id: (j['id'] ?? 0) as int,
       slug: (j['slug'] ?? '').toString(),
@@ -63,7 +65,11 @@ class ProductImage {
   final String path;
   final String? thumbPath;
   final bool isPrimary;
-  const ProductImage({required this.id, required this.path, this.thumbPath, this.isPrimary = false});
+  const ProductImage(
+      {required this.id,
+      required this.path,
+      this.thumbPath,
+      this.isPrimary = false});
 
   String get url => Env.assetUrl(path);
   String get thumbUrl => Env.assetUrl(thumbPath ?? path);
@@ -119,8 +125,11 @@ class ProductDetail {
   bool get isOutOfStock => stockStatus == StockStatus.outOfStock;
 
   factory ProductDetail.fromJson(Map<String, dynamic> j) {
-    final cat = (j['category'] is Map) ? Map<String, dynamic>.from(j['category']) : null;
-    final brand = (j['brand'] is Map) ? Map<String, dynamic>.from(j['brand']) : null;
+    final cat = (j['category'] is Map)
+        ? Map<String, dynamic>.from(j['category'])
+        : null;
+    final brand =
+        (j['brand'] is Map) ? Map<String, dynamic>.from(j['brand']) : null;
     final specsRaw = j['specs'];
     final specs = <String, String>{};
     if (specsRaw is Map) {
@@ -154,9 +163,9 @@ class ProductDetail {
 
 /// Condition label (web getConditionLabel parity; unknown → empty).
 String conditionLabel(String condition) => switch (condition) {
-      'new' => 'جديد',
-      'used_imported' => 'مستعمل استيراد',
-      'open_box' => 'كرتونة مفتوحة',
-      'refurbished' => 'مجدد',
+      'new' => Ar.condNew,
+      'used_imported' => Ar.condUsed,
+      'open_box' => Ar.condOpenBox,
+      'refurbished' => Ar.condRefurb,
       _ => '',
     };

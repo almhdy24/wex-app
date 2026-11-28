@@ -19,7 +19,8 @@ class MeRepository {
   }
 
   Future<User> setEmailNotifications(bool on) async {
-    final env = await api.patch('/me/preferences', body: {'email_notifications': on});
+    final env =
+        await api.patch('/me/preferences', body: {'email_notifications': on});
     return User.fromJson(Map<String, dynamic>.from(env.data as Map));
   }
 }

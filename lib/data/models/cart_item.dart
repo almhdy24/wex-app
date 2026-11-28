@@ -24,13 +24,23 @@ class CartItem {
   int get lineTotal => priceSdg * quantity;
 
   CartItem copyWith({int? quantity}) => CartItem(
-        productId: productId, slug: slug, name: name, priceSdg: priceSdg,
-        thumbPath: thumbPath, quantity: quantity ?? this.quantity, maxQty: maxQty,
+        productId: productId,
+        slug: slug,
+        name: name,
+        priceSdg: priceSdg,
+        thumbPath: thumbPath,
+        quantity: quantity ?? this.quantity,
+        maxQty: maxQty,
       );
 
   Map<String, dynamic> toJson() => {
-        'product_id': productId, 'slug': slug, 'name': name, 'price_sdg': priceSdg,
-        'thumb': thumbPath, 'quantity': quantity, 'max_qty': maxQty,
+        'product_id': productId,
+        'slug': slug,
+        'name': name,
+        'price_sdg': priceSdg,
+        'thumb': thumbPath,
+        'quantity': quantity,
+        'max_qty': maxQty,
       };
 
   factory CartItem.fromJson(Map<String, dynamic> j) => CartItem(
@@ -46,9 +56,15 @@ class CartItem {
   factory CartItem.fromProduct(ProductDetail p, {int quantity = 1}) {
     final max = p.stockStatus == StockStatus.lowStock ? 2 : 10;
     return CartItem(
-      productId: p.id, slug: p.slug, name: p.name, priceSdg: p.priceSdg,
-      thumbPath: p.images.isNotEmpty ? (p.images.first.thumbPath ?? p.images.first.path) : null,
-      quantity: quantity.clamp(1, max), maxQty: max,
+      productId: p.id,
+      slug: p.slug,
+      name: p.name,
+      priceSdg: p.priceSdg,
+      thumbPath: p.images.isNotEmpty
+          ? (p.images.first.thumbPath ?? p.images.first.path)
+          : null,
+      quantity: quantity.clamp(1, max),
+      maxQty: max,
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../../core/network/api_exception.dart';
+import '../../core/strings.dart';
 import '../../data/models/product.dart';
 import '../../data/repositories/product_repository.dart';
 
@@ -57,7 +58,9 @@ class CatalogController extends StateNotifier<CatalogState> {
 
   Future<void> _load({required bool reset}) async {
     final req = ++_reqId;
-    final q = reset ? state.query.copyWith(page: 1) : state.query.copyWith(page: state.query.page + 1);
+    final q = reset
+        ? state.query.copyWith(page: 1)
+        : state.query.copyWith(page: state.query.page + 1);
     state = reset
         ? state.copyWith(query: q, loading: true, clearError: true)
         : state.copyWith(query: q, loadingMore: true);
@@ -74,10 +77,12 @@ class CatalogController extends StateNotifier<CatalogState> {
       );
     } on ApiException catch (e) {
       if (req != _reqId) return;
-      state = state.copyWith(loading: false, loadingMore: false, error: e.message);
+      state =
+          state.copyWith(loading: false, loadingMore: false, error: e.message);
     } catch (_) {
       if (req != _reqId) return;
-      state = state.copyWith(loading: false, loadingMore: false, error: 'تعذّر تحميل المنتجات');
+      state = state.copyWith(
+          loading: false, loadingMore: false, error: Ar.productsLoadError);
     }
   }
 
@@ -87,7 +92,9 @@ class CatalogController extends StateNotifier<CatalogState> {
   }
 
   void setType(String? type) {
-    state = CatalogState(query: ProductQuery(type: type, sort: state.query.sort, search: state.query.search));
+    state = CatalogState(
+        query: ProductQuery(
+            type: type, sort: state.query.sort, search: state.query.search));
     _load(reset: true);
   }
 
@@ -96,9 +103,14 @@ class CatalogController extends StateNotifier<CatalogState> {
     _load(reset: true);
   }
 
-  void applyFilters({String? brand, String? condition, int? minPriceSdg, int? maxPriceSdg}) {
-    state = state.copyWith(query: state.query.copyWith(
-        brand: brand, condition: condition, minPriceSdg: minPriceSdg, maxPriceSdg: maxPriceSdg));
+  void applyFilters(
+      {String? brand, String? condition, int? minPriceSdg, int? maxPriceSdg}) {
+    state = state.copyWith(
+        query: state.query.copyWith(
+            brand: brand,
+            condition: condition,
+            minPriceSdg: minPriceSdg,
+            maxPriceSdg: maxPriceSdg));
     _load(reset: true);
   }
 
@@ -115,7 +127,7 @@ class CatalogController extends StateNotifier<CatalogState> {
   Future<void> refresh() => _load(reset: true);
 }
 
-final catalogControllerProvider =
-    StateNotifierProvider.autoDispose.family<CatalogController, CatalogState, ProductQuery>(
+final catalogControllerProvider = StateNotifierProvider.autoDispose
+    .family<CatalogController, CatalogState, ProductQuery>(
   (ref, initial) => CatalogController(ref, initial),
 );

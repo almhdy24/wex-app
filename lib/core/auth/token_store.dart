@@ -9,6 +9,7 @@ class TokenStore {
       : _storage = storage ?? const FlutterSecureStorage();
 
   Future<String?> readRefresh() => _storage.read(key: _kRefresh);
-  Future<void> writeRefresh(String token) => _storage.write(key: _kRefresh, value: token);
+  Future<void> writeRefresh(String token) =>
+      _storage.write(key: _kRefresh, value: token);
   Future<void> clear() => _storage.delete(key: _kRefresh);
 }

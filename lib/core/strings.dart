@@ -12,7 +12,8 @@ abstract final class Ar {
 
   // Home
   static const heroTitle = 'لابتوب يناسب شغلك ودراستك';
-  static const heroSubtitle = 'أجهزة مستوردة بأسعار واضحة، ونثبّت لك السعر بعد الطلب';
+  static const heroSubtitle =
+      'أجهزة مستوردة بأسعار واضحة، ونثبّت لك السعر بعد الطلب';
   static const searchHint = 'ابحث عن لابتوب أو ماركة';
   static const seeAll = 'عرض الكل';
   static const sectionNewest = 'أحدث الأجهزة';
@@ -84,7 +85,8 @@ abstract final class Ar {
 
   // Order / success
   static const orderCreated = 'تم استلام طلبك';
-  static const orderConfirmHint = 'ثبّتنا لك السعر. حوّل المبلغ وارفع إشعار التحويل.';
+  static const orderConfirmHint =
+      'ثبّتنا لك السعر. حوّل المبلغ وارفع إشعار التحويل.';
   static const uploadProof = 'رفع إشعار التحويل';
   static const reupload = 'إعادة رفع الإشعار';
   static const proofUploaded = 'تم رفع إشعار التحويل';
@@ -130,4 +132,93 @@ abstract final class Ar {
   static const loadError = 'تعذّر التحميل. حاول مرة أخرى.';
   static const noResults = 'لا توجد نتائج مطابقة';
   static const cancel = 'إلغاء';
+
+  // Store / filters
+  static const filterAll = 'الكل';
+  static const filterLaptops = 'لابتوبات';
+  static const filterPhones = 'هواتف';
+  static const filterAccessories = 'ملحقات';
+  static const sortNewest = 'الأحدث';
+  static const sortPriceAsc = 'الأقل سعرًا';
+  static const sortPriceDesc = 'الأعلى سعرًا';
+  static const sortBy = 'ترتيب حسب';
+  static String results(int n) => '$n نتيجة';
+
+  // Orders list / detail
+  static const ordersSignedOut = 'سجّل الدخول لعرض طلباتك';
+  static const ordersLoadError = 'تعذّر تحميل الطلبات';
+  static const ordersEmpty = 'لا توجد طلبات بعد';
+  static const stPending = 'بانتظار الدفع';
+  static const stReview = 'مراجعة التحويل';
+  static const stConfirmed = 'مؤكد';
+  static const stCompleted = 'مكتمل';
+  static const stCancelled = 'ملغي';
+  static const stExpired = 'منتهي';
+  static const orderDetails = 'تفاصيل الطلب';
+  static const orderLoadError = 'تعذّر تحميل الطلب';
+  static const uploadFailed = 'تعذّر رفع الإشعار';
+  static const reorderFailed = 'تعذّر إعادة الطلب';
+  static const lockHeading = 'السعر مثبّت — أكمل التحويل خلال';
+  static const discount = 'الخصم';
+  static const deliveryFee = 'رسوم التوصيل';
+  static const accountCopied = 'تم نسخ رقم الحساب';
+
+  // Notifications / content / push prefs
+  static const markAllRead = 'قراءة الكل';
+  static const notifEmpty = 'لا توجد إشعارات';
+  static const pageFallbackTitle = 'صفحة المتجر';
+  static const pageMissing = 'هذه الصفحة غير متوفرة حاليًا.';
+  static const pushTitle = 'إشعارات التطبيق';
+  static const prefOrders = 'تحديثات الطلب';
+  static const prefPayments = 'تأكيد الدفع';
+  static const prefPrices = 'تنبيهات الأسعار';
+  static const prefOffers = 'العروض والإعلانات';
+  static const testSent = 'تم إرسال إشعار تجريبي';
+  static const sendTest = 'إرسال إشعار تجريبي';
+
+  // Errors / validation / misc UI
+  static const verifyCodeLen = 'الرمز مكوّن من 6 أرقام';
+  static String verifySentTo(String email) => 'أرسلنا الرمز إلى\n$email';
+  static String resendCountdown(int s) => '$resendIn $s ثانية';
+  static const googleFailed =
+      'تعذّر تسجيل الدخول عبر Google. جرّب البريد الإلكتروني.';
+  static const invalidEmail = 'أدخل بريدًا إلكترونيًا صحيحًا';
+  static const connectFailed = 'تعذّر الاتصال. حاول مرة أخرى.';
+  static const orWord = 'أو';
+  static const invalidPhone = 'أدخل رقم هاتف سوداني صحيح (مثال: 09XXXXXXXX)';
+  static const pickZone = 'اختر منطقة التوصيل';
+  static const addressNeeded = 'أدخل عنوان التوصيل بالتفصيل';
+  static const orderFailed = 'تعذّر إنشاء الطلب. حاول مرة أخرى.';
+  static const ordersPausedTitle = 'الطلبات متوقفة مؤقتًا';
+  static const zonesLoadError = 'تعذّر تحميل مناطق التوصيل';
+  static const contactHeading = 'التواصل';
+  static String lockNoticeHours(String hours) =>
+      'بعد التأكيد نثبّت لك السعر $hours لتكمل التحويل';
+  static const deviceDetails = 'تفاصيل الجهاز';
+  static const deviceLoadError = 'تعذّر تحميل الجهاز';
+  static const description = 'الوصف';
+  static const showLess = 'عرض أقل';
+  static const showMore = 'عرض المزيد';
+  static String waProductInquiry(String name) => 'مرحبًا، أسأل عن: $name';
+  static const waLooking = 'مرحبًا، أبحث عن جهاز.';
+  static const storeHeading = 'المتجر';
+  static const whatsappLabel = 'واتساب';
+  static const mapLabel = 'الخريطة';
+  static const productsLoadError = 'تعذّر تحميل المنتجات';
+  static const cartEmptyBody = 'أضف أجهزة إلى سلتك وتابع الطلب بسهولة.';
+  static String versionLine(String v) => '$appName · الإصدار $v';
+  static const condOpenBox = 'كرتونة مفتوحة';
+  static const condRefurb = 'مجدد';
+  static const chPayments = 'إشعارات الدفع';
+  static const chOrders = 'تحديثات الطلبات';
+  static const chOffers = 'العروض';
+  static const serverUnexpected = 'استجابة غير متوقعة من الخادم';
+  static const unexpectedError = 'حدث خطأ غير متوقع';
+
+  // Order success
+  static const orderNumberLabel = 'رقم الطلب';
+  static const shareWhatsapp = 'مشاركة عبر واتساب';
+  static String shareOrderText(String n) =>
+      'طلبي من ويكس تكنولوجي — رقم الطلب: $n';
+  static const nextStep = 'الخطوة التالية';
 }

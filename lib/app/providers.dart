@@ -19,37 +19,46 @@ final contentRepositoryProvider =
     Provider((ref) => ContentRepository(ref.read(serverTimeApiProvider)));
 final orderRepositoryProvider =
     Provider((ref) => OrderRepository(ref.read(serverTimeApiProvider)));
-final zonesProvider = FutureProvider((ref) => ref.read(catalogRepositoryProvider).zones());
+final zonesProvider =
+    FutureProvider((ref) => ref.read(catalogRepositoryProvider).zones());
 
 /// Shop profile (lock hours, discount %, orders_enabled, address...). Cached for the session.
 final shopProvider = FutureProvider<Shop>((ref) async {
   return ref.read(catalogRepositoryProvider).shop();
 });
 
-final brandsProvider = FutureProvider((ref) => ref.read(catalogRepositoryProvider).brands());
-final categoriesProvider = FutureProvider((ref) => ref.read(catalogRepositoryProvider).categories());
+final brandsProvider =
+    FutureProvider((ref) => ref.read(catalogRepositoryProvider).brands());
+final categoriesProvider =
+    FutureProvider((ref) => ref.read(catalogRepositoryProvider).categories());
 
-
-final ordersListProvider = FutureProvider.autoDispose((ref) => ref.read(orderRepositoryProvider).list());
+final ordersListProvider = FutureProvider.autoDispose(
+    (ref) => ref.read(orderRepositoryProvider).list());
 final orderDetailProvider = FutureProvider.autoDispose.family(
     (ref, String number) => ref.read(orderRepositoryProvider).detail(number));
 
-
-final meRepositoryProvider = Provider((ref) => MeRepository(ref.read(serverTimeApiProvider)));
+final meRepositoryProvider =
+    Provider((ref) => MeRepository(ref.read(serverTimeApiProvider)));
 final notificationRepositoryProvider =
     Provider((ref) => NotificationRepository(ref.read(serverTimeApiProvider)));
-final notificationsProvider = FutureProvider.autoDispose((ref) => ref.read(notificationRepositoryProvider).list());
-final unreadCountProvider = FutureProvider.autoDispose((ref) => ref.read(notificationRepositoryProvider).unreadCount());
-final faqProvider = FutureProvider.autoDispose((ref) => ref.read(contentRepositoryProvider).faq());
-final pageProvider = FutureProvider.autoDispose.family((ref, String slug) => ref.read(contentRepositoryProvider).page(slug));
+final notificationsProvider = FutureProvider.autoDispose(
+    (ref) => ref.read(notificationRepositoryProvider).list());
+final unreadCountProvider = FutureProvider.autoDispose(
+    (ref) => ref.read(notificationRepositoryProvider).unreadCount());
+final faqProvider = FutureProvider.autoDispose(
+    (ref) => ref.read(contentRepositoryProvider).faq());
+final pageProvider = FutureProvider.autoDispose.family(
+    (ref, String slug) => ref.read(contentRepositoryProvider).page(slug));
 
-final pushRepositoryProvider = Provider((ref) => PushRepository(ref.read(serverTimeApiProvider)));
+final pushRepositoryProvider =
+    Provider((ref) => PushRepository(ref.read(serverTimeApiProvider)));
 
 final pushServiceProvider = Provider((ref) => PushService(
       ref.read(pushRepositoryProvider),
       onOpen: (data) {
         final url = data['url']?.toString();
-        final order = data['orderNumber']?.toString() ?? data['order_number']?.toString();
+        final order =
+            data['orderNumber']?.toString() ?? data['order_number']?.toString();
         if (url != null && url.startsWith('/')) {
           appRouter.go(url);
         } else if (order != null && order.isNotEmpty) {

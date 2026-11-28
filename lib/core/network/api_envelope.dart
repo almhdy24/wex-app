@@ -18,15 +18,23 @@ class ApiEnvelope {
         success: json['success'] == true,
         message: (json['message'] ?? '').toString(),
         data: json['data'],
-        errors: (json['errors'] is Map) ? Map<String, dynamic>.from(json['errors']) : null,
-        meta: (json['meta'] is Map) ? Map<String, dynamic>.from(json['meta']) : null,
+        errors: (json['errors'] is Map)
+            ? Map<String, dynamic>.from(json['errors'])
+            : null,
+        meta: (json['meta'] is Map)
+            ? Map<String, dynamic>.from(json['meta'])
+            : null,
       );
 }
 
 /// Pagination meta: { page, per_page, total, total_pages }.
 class PageMeta {
   final int page, perPage, total, totalPages;
-  const PageMeta({required this.page, required this.perPage, required this.total, required this.totalPages});
+  const PageMeta(
+      {required this.page,
+      required this.perPage,
+      required this.total,
+      required this.totalPages});
 
   factory PageMeta.fromJson(Map<String, dynamic>? m) => PageMeta(
         page: (m?['page'] ?? 1) as int,

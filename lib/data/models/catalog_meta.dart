@@ -26,7 +26,8 @@ class ShippingZone {
   final int id;
   final String name;
   final int feeSdg;
-  const ShippingZone({required this.id, required this.name, required this.feeSdg});
+  const ShippingZone(
+      {required this.id, required this.name, required this.feeSdg});
   factory ShippingZone.fromJson(Map<String, dynamic> j) => ShippingZone(
         id: (j['id'] ?? 0) as int,
         name: (j['zone_name'] ?? j['name'] ?? '').toString(),

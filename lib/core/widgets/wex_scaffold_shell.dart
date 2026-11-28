@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../design/colors.dart';
+import '../strings.dart';
 
 /// Modern bottom nav: a soft floating bar with an animated indicator pill behind
 /// the active tab, filled/outlined icon swap, RTL-aware.
@@ -10,17 +11,29 @@ class WexScaffoldShell extends StatelessWidget {
   const WexScaffoldShell({super.key, required this.shell});
 
   static const _tabs = [
-    (icon: Icons.home_outlined, active: Icons.home_rounded, label: 'الرئيسية'),
-    (icon: Icons.grid_view_outlined, active: Icons.grid_view_rounded, label: 'المتجر'),
-    (icon: Icons.receipt_long_outlined, active: Icons.receipt_long_rounded, label: 'طلباتي'),
-    (icon: Icons.person_outline_rounded, active: Icons.person_rounded, label: 'حسابي'),
+    (icon: Icons.home_outlined, active: Icons.home_rounded, label: Ar.navHome),
+    (
+      icon: Icons.grid_view_outlined,
+      active: Icons.grid_view_rounded,
+      label: Ar.navStore
+    ),
+    (
+      icon: Icons.receipt_long_outlined,
+      active: Icons.receipt_long_rounded,
+      label: Ar.navOrders
+    ),
+    (
+      icon: Icons.person_outline_rounded,
+      active: Icons.person_rounded,
+      label: Ar.navAccount
+    ),
   ];
 
   @override
   Widget build(BuildContext context) {
     final current = shell.currentIndex;
     return Scaffold(
-      body: shell,
+      body: _TabFade(index: current, child: shell),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: WexColors.white,
@@ -71,11 +84,14 @@ class _Tab extends StatelessWidget {
             curve: Curves.easeOutCubic,
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 5),
             decoration: BoxDecoration(
-              color: selected ? WexColors.primary.withValues(alpha: 0.12) : Colors.transparent,
+              color: selected
+                  ? WexColors.primary.withValues(alpha: 0.12)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(selected ? data.active : data.icon,
-                color: selected ? WexColors.primary : WexColors.textSecondary, size: 24),
+                color: selected ? WexColors.primary : WexColors.textSecondary,
+                size: 24),
           ),
           const SizedBox(height: 3),
           Text(data.label,
@@ -88,4 +104,37 @@ class _Tab extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Fade-through when switching tabs (state of every tab is preserved by the IndexedStack).
+class _TabFade extends StatefulWidget {
+  final int index;
+  final Widget child;
+  const _TabFade({required this.index, required this.child});
+  @override
+  State<_TabFade> createState() => _TabFadeState();
+}
+
+class _TabFadeState extends State<_TabFade>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _c = AnimationController(
+      vsync: this, duration: const Duration(milliseconds: 240), value: 1);
+  @override
+  void didUpdateWidget(covariant _TabFade old) {
+    super.didUpdateWidget(old);
+    if (old.index != widget.index && !MediaQuery.of(context).disableAnimations) {
+      _c.forward(from: 0.35);
+    }
+  }
+
+  @override
+  void dispose() {
+    _c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+      opacity: CurvedAnimation(parent: _c, curve: Curves.easeOut),
+      child: widget.child);
 }

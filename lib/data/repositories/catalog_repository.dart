@@ -8,17 +8,23 @@ class CatalogRepository {
 
   Future<List<Category>> categories() async {
     final env = await api.get('/categories');
-    return (env.data as List? ?? []).map((e) => Category.fromJson(Map<String, dynamic>.from(e))).toList();
+    return (env.data as List? ?? [])
+        .map((e) => Category.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   Future<List<Brand>> brands() async {
     final env = await api.get('/brands');
-    return (env.data as List? ?? []).map((e) => Brand.fromJson(Map<String, dynamic>.from(e))).toList();
+    return (env.data as List? ?? [])
+        .map((e) => Brand.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   Future<List<ShippingZone>> zones() async {
     final env = await api.get('/shipping-zones');
-    return (env.data as List? ?? []).map((e) => ShippingZone.fromJson(Map<String, dynamic>.from(e))).toList();
+    return (env.data as List? ?? [])
+        .map((e) => ShippingZone.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
   }
 
   Future<Shop> shop() async {

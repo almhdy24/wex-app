@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/strings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
@@ -13,7 +14,7 @@ class NotificationsScreen extends ConsumerWidget {
     final async = ref.watch(notificationsProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الإشعارات'),
+        title: const Text(Ar.notifications),
         actions: [
           TextButton(
             onPressed: () async {
@@ -21,26 +22,36 @@ class NotificationsScreen extends ConsumerWidget {
               ref.invalidate(notificationsProvider);
               ref.invalidate(unreadCountProvider);
             },
-            child: const Text('قراءة الكل'),
+            child: const Text(Ar.markAllRead),
           ),
         ],
       ),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => Center(child: OutlinedButton(
-            onPressed: () => ref.invalidate(notificationsProvider), child: const Text('إعادة المحاولة'))),
+        error: (_, __) => Center(
+            child: OutlinedButton(
+                onPressed: () => ref.invalidate(notificationsProvider),
+                child: const Text(Ar.retry))),
         data: (list) => list.isEmpty
-            ? const Center(child: Text('لا توجد إشعارات', style: TextStyle(color: WexColors.textSecondary)))
+            ? const Center(
+                child: Text(Ar.notifEmpty,
+                    style: TextStyle(color: WexColors.textSecondary)))
             : ListView.separated(
                 padding: const EdgeInsets.all(Sp.page),
                 itemCount: list.length,
                 separatorBuilder: (_, __) => const SizedBox(height: Sp.x3),
-                itemBuilder: (_, i) => _NotifTile(n: list[i], onTap: () async {
-                  await ref.read(notificationRepositoryProvider).markRead(list[i].id);
-                  ref.invalidate(unreadCountProvider);
-                  final n = list[i];
-                  if (n.orderNumber != null && context.mounted) context.push('/orders/${n.orderNumber}');
-                }),
+                itemBuilder: (_, i) => _NotifTile(
+                    n: list[i],
+                    onTap: () async {
+                      await ref
+                          .read(notificationRepositoryProvider)
+                          .markRead(list[i].id);
+                      ref.invalidate(unreadCountProvider);
+                      final n = list[i];
+                      if (n.orderNumber != null && context.mounted) {
+                        context.push('/orders/${n.orderNumber}');
+                      }
+                    }),
               ),
       ),
     );
@@ -60,15 +71,30 @@ class _NotifTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: n.isRead ? WexColors.white : WexColors.ice,
             borderRadius: BorderRadius.circular(Radii.card),
-            boxShadow: const [BoxShadow(color: Color(0x0F061A55), blurRadius: 6, offset: Offset(0, 2))],
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x0F061A55), blurRadius: 6, offset: Offset(0, 2))
+            ],
           ),
           child: Row(children: [
-            if (!n.isRead) Container(width: 8, height: 8, margin: const EdgeInsetsDirectional.only(end: 10),
-                decoration: const BoxDecoration(color: WexColors.royal, shape: BoxShape.circle)),
-            Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700)),
-              if (n.body.isNotEmpty) Text(n.body, style: const TextStyle(color: WexColors.textSecondary, fontSize: 13)),
-            ])),
+            if (!n.isRead)
+              Container(
+                  width: 8,
+                  height: 8,
+                  margin: const EdgeInsetsDirectional.only(end: 10),
+                  decoration: const BoxDecoration(
+                      color: WexColors.royal, shape: BoxShape.circle)),
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text(n.title,
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  if (n.body.isNotEmpty)
+                    Text(n.body,
+                        style: const TextStyle(
+                            color: WexColors.textSecondary, fontSize: 13)),
+                ])),
           ]),
         ),
       );

@@ -21,28 +21,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   String? _error;
 
   Future<void> _google() async {
-    setState(() { _busyGoogle = true; _error = null; });
-    final ok = await ref.read(authControllerProvider.notifier).signInWithGoogle();
+    setState(() {
+      _busyGoogle = true;
+      _error = null;
+    });
+    final ok =
+        await ref.read(authControllerProvider.notifier).signInWithGoogle();
     if (!mounted) return;
     setState(() => _busyGoogle = false);
     if (ok) {
       context.pop();
     } else {
-      setState(() => _error = 'تعذّر تسجيل الدخول عبر Google. جرّب البريد الإلكتروني.');
+      setState(() => _error = Ar.googleFailed);
     }
   }
 
   Future<void> _sendCode() async {
     final email = _email.text.trim();
-    if (!email.contains('@')) { setState(() => _error = 'أدخل بريدًا إلكترونيًا صحيحًا'); return; }
-    setState(() { _busyEmail = true; _error = null; });
+    if (!email.contains('@')) {
+      setState(() => _error = Ar.invalidEmail);
+      return;
+    }
+    setState(() {
+      _busyEmail = true;
+      _error = null;
+    });
     try {
       await ref.read(authControllerProvider.notifier).requestEmailOtp(email);
       if (mounted) context.push('/verify?email=${Uri.encodeComponent(email)}');
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {
-      setState(() => _error = 'تعذّر الاتصال. حاول مرة أخرى.');
+      setState(() => _error = Ar.connectFailed);
     } finally {
       if (mounted) setState(() => _busyEmail = false);
     }
@@ -59,17 +69,35 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: [
               Align(
                 alignment: AlignmentDirectional.centerStart,
-                child: IconButton(onPressed: () => context.pop(), icon: const Icon(Icons.arrow_forward)),
+                child: IconButton(
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.arrow_forward)),
               ),
               const Spacer(),
               Center(
                 child: Container(
-                  width: 76, height: 76, alignment: Alignment.center,
+                  width: 76,
+                  height: 76,
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    gradient: WexColors.gradBrand, borderRadius: BorderRadius.circular(22),
-                    boxShadow: const [BoxShadow(color: Color(0x332E3BC4), blurRadius: 24, offset: Offset(0, 10))]),
-                  child: const Icon(Icons.laptop_chromebook_rounded, color: Colors.white, size: 38),
-                ).animate().scale(begin: const Offset(0.7, 0.7), end: const Offset(1, 1), duration: 420.ms, curve: Curves.easeOutBack).fadeIn(),
+                      gradient: WexColors.gradBrand,
+                      borderRadius: BorderRadius.circular(22),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: Color(0x332E3BC4),
+                            blurRadius: 24,
+                            offset: Offset(0, 10))
+                      ]),
+                  child: const Icon(Icons.laptop_chromebook_rounded,
+                      color: Colors.white, size: 38),
+                )
+                    .animate()
+                    .scale(
+                        begin: const Offset(0.7, 0.7),
+                        end: const Offset(1, 1),
+                        duration: 420.ms,
+                        curve: Curves.easeOutBack)
+                    .fadeIn(),
               ),
               const SizedBox(height: Sp.x8),
               const Text(Ar.loginTitle,
@@ -78,24 +106,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               const SizedBox(height: 8),
               const Text(Ar.loginSubtitle,
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: WexColors.textSecondary, height: 1.6)),
+                  style:
+                      TextStyle(color: WexColors.textSecondary, height: 1.6)),
               const SizedBox(height: Sp.x10),
 
               // PRIMARY: Google
               FilledButton(
                 onPressed: _busyGoogle ? null : _google,
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white, foregroundColor: WexColors.textPrimary,
+                  backgroundColor: Colors.white,
+                  foregroundColor: WexColors.textPrimary,
                   side: const BorderSide(color: WexColors.border),
                   minimumSize: const Size.fromHeight(56),
                 ),
                 child: _busyGoogle
-                    ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(strokeWidth: 2))
-                    : Row(mainAxisAlignment: MainAxisAlignment.center, children: const [
-                        _GoogleG(),
-                        SizedBox(width: 12),
-                        Text(Ar.googleContinue, style: TextStyle(fontWeight: FontWeight.w700)),
-                      ]),
+                    ? const SizedBox(
+                        height: 22,
+                        width: 22,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                            _GoogleG(),
+                            SizedBox(width: 12),
+                            Text(Ar.googleContinue,
+                                style: TextStyle(fontWeight: FontWeight.w700)),
+                          ]),
               ),
               const SizedBox(height: Sp.x6),
 
@@ -107,7 +143,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               else ...[
                 Row(children: const [
                   Expanded(child: Divider()),
-                  Padding(padding: EdgeInsets.symmetric(horizontal: 12), child: Text('أو', style: TextStyle(color: WexColors.textSecondary))),
+                  Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(Ar.orWord,
+                          style: TextStyle(color: WexColors.textSecondary))),
                   Expanded(child: Divider()),
                 ]),
                 const SizedBox(height: Sp.x6),
@@ -121,15 +160,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 FilledButton(
                   onPressed: _busyEmail ? null : _sendCode,
                   child: _busyEmail
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
                       : const Text(Ar.sendCode),
                 ),
               ],
 
-              if (_error != null) Padding(
-                padding: const EdgeInsets.only(top: Sp.x6),
-                child: Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: WexColors.danger)),
-              ),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: Sp.x6),
+                  child: Text(_error!,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: WexColors.danger)),
+                ),
               const Spacer(flex: 2),
               const Text(Ar.termsNote,
                   textAlign: TextAlign.center,
@@ -147,7 +193,8 @@ class _GoogleG extends StatelessWidget {
   const _GoogleG();
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: 20, height: 20,
+        width: 20,
+        height: 20,
         child: CustomPaint(painter: _GPainter()),
       );
 }
@@ -157,19 +204,30 @@ class _GPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
     final r = size.width / 2;
-    final paint = Paint()..style = PaintingStyle.stroke..strokeWidth = size.width * 0.22..strokeCap = StrokeCap.butt;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = size.width * 0.22
+      ..strokeCap = StrokeCap.butt;
     void arc(double start, double sweep, Color col) {
       paint.color = col;
-      canvas.drawArc(Rect.fromCircle(center: c, radius: r * 0.78), start, sweep, false, paint);
+      canvas.drawArc(Rect.fromCircle(center: c, radius: r * 0.78), start, sweep,
+          false, paint);
     }
+
     arc(-0.35, 1.2, const Color(0xFF4285F4));
     arc(0.85, 1.4, const Color(0xFF34A853));
     arc(2.25, 1.4, const Color(0xFFFBBC05));
     arc(3.65, 1.4, const Color(0xFFEA4335));
     // crossbar
-    final bar = Paint()..color = const Color(0xFF4285F4)..style = PaintingStyle.fill;
-    canvas.drawRect(Rect.fromLTWH(c.dx, c.dy - size.height * 0.08, r * 0.82, size.height * 0.16), bar);
+    final bar = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.fill;
+    canvas.drawRect(
+        Rect.fromLTWH(
+            c.dx, c.dy - size.height * 0.08, r * 0.82, size.height * 0.16),
+        bar);
   }
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

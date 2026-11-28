@@ -20,11 +20,23 @@ const _order = <String, IconData>{
 
 /// Key aliases → canonical label (handles English/variant keys).
 const _keyAlias = <String, String>{
-  'cpu': 'المعالج', 'processor': 'المعالج', 'المعالِج': 'المعالج',
-  'ram': 'الرام', 'memory': 'الرام', 'الذاكرة': 'الرام', 'الذاكرة العشوائية': 'الرام',
-  'storage': 'التخزين', 'ssd': 'التخزين', 'hdd': 'التخزين', 'القرص': 'التخزين',
-  'gpu': 'كرت الشاشة', 'graphics': 'كرت الشاشة', 'كرت الرسوميات': 'كرت الشاشة', 'كرت شاشة': 'كرت الشاشة',
-  'display': 'الشاشة', 'screen': 'الشاشة',
+  'cpu': 'المعالج',
+  'processor': 'المعالج',
+  'المعالِج': 'المعالج',
+  'ram': 'الرام',
+  'memory': 'الرام',
+  'الذاكرة': 'الرام',
+  'الذاكرة العشوائية': 'الرام',
+  'storage': 'التخزين',
+  'ssd': 'التخزين',
+  'hdd': 'التخزين',
+  'القرص': 'التخزين',
+  'gpu': 'كرت الشاشة',
+  'graphics': 'كرت الشاشة',
+  'كرت الرسوميات': 'كرت الشاشة',
+  'كرت شاشة': 'كرت الشاشة',
+  'display': 'الشاشة',
+  'screen': 'الشاشة',
   'battery': 'البطارية',
 };
 
@@ -37,11 +49,22 @@ String _canonicalKey(String k) {
 String normalizeSpecValue(String raw) {
   var v = raw.trim();
   const subs = {
-    'قيقا': 'جيجابايت', 'جيقا': 'جيجابايت', 'غيغا': 'جيجابايت',
-    'دسديارفور': 'DDR4', 'دي دي ار 4': 'DDR4', 'دي دي آر فور': 'DDR4',
-    'دسديارفايف': 'DDR5', 'دي دي ار 5': 'DDR5',
-    'اس اسدي': 'SSD', 'اس اس دي': 'SSD', 'إس إس دي': 'SSD',
-    'اتش دي دي': 'HDD', 'انتل': 'Intel', 'اي 5': 'i5', 'اي 7': 'i7', 'اي 3': 'i3',
+    'قيقا': 'جيجابايت',
+    'جيقا': 'جيجابايت',
+    'غيغا': 'جيجابايت',
+    'دسديارفور': 'DDR4',
+    'دي دي ار 4': 'DDR4',
+    'دي دي آر فور': 'DDR4',
+    'دسديارفايف': 'DDR5',
+    'دي دي ار 5': 'DDR5',
+    'اس اسدي': 'SSD',
+    'اس اس دي': 'SSD',
+    'إس إس دي': 'SSD',
+    'اتش دي دي': 'HDD',
+    'انتل': 'Intel',
+    'اي 5': 'i5',
+    'اي 7': 'i7',
+    'اي 3': 'i3',
     'بوصه': 'بوصة',
   };
   subs.forEach((a, b) => v = v.replaceAll(a, b));
@@ -49,12 +72,23 @@ String normalizeSpecValue(String raw) {
 }
 
 bool _looksLikeScreen(String v) =>
-    RegExp(r'\d{1,2}(\.\d)?').hasMatch(v) && (v.contains('بوصة') || v.contains('"') || RegExp(r'1[0-9](\.\d)?').hasMatch(v) && !v.toLowerCase().contains('gb'));
+    RegExp(r'\d{1,2}(\.\d)?').hasMatch(v) &&
+    (v.contains('بوصة') ||
+        v.contains('"') ||
+        RegExp(r'1[0-9](\.\d)?').hasMatch(v) &&
+            !v.toLowerCase().contains('gb'));
 bool _looksLikeGpu(String v) {
   final low = v.toLowerCase();
-  return low.contains('nvidia') || low.contains('rtx') || low.contains('gtx') ||
-      low.contains('radeon') || low.contains('intel') || low.contains('uhd') ||
-      low.contains('iris') || low.contains('amd') || v.contains('لا يوجد') || v.contains('مدمج');
+  return low.contains('nvidia') ||
+      low.contains('rtx') ||
+      low.contains('gtx') ||
+      low.contains('radeon') ||
+      low.contains('intel') ||
+      low.contains('uhd') ||
+      low.contains('iris') ||
+      low.contains('amd') ||
+      v.contains('لا يوجد') ||
+      v.contains('مدمج');
 }
 
 /// Build the ordered, icon'd spec rows — and correct the common admin mistake
@@ -66,7 +100,10 @@ List<SpecRow> buildSpecRows(Map<String, String> specs) {
   // Fix swapped screen/GPU: screen value looks like a GPU and GPU value looks like a screen size.
   final screen = norm['الشاشة'];
   final gpu = norm['كرت الشاشة'];
-  if (screen != null && gpu != null && _looksLikeGpu(screen) && _looksLikeScreen(gpu)) {
+  if (screen != null &&
+      gpu != null &&
+      _looksLikeGpu(screen) &&
+      _looksLikeScreen(gpu)) {
     norm['الشاشة'] = gpu;
     norm['كرت الشاشة'] = screen;
   }
@@ -92,12 +129,15 @@ List<String> specChips(Map<String, String> specs) {
   String? shorten(String? v, {bool cpu = false}) {
     if (v == null || v.isEmpty) return null;
     if (cpu) {
-      final m = RegExp(r'i[3579]').firstMatch(v) ?? RegExp(r'(Ryzen\s?\d)', caseSensitive: false).firstMatch(v);
+      final m = RegExp(r'i[3579]').firstMatch(v) ??
+          RegExp(r'(Ryzen\s?\d)', caseSensitive: false).firstMatch(v);
       return m?.group(0) ?? (v.length > 10 ? v.substring(0, 10) : v);
     }
-    final m = RegExp(r'\d+\s?(GB|TB|جيجابايت|تيرا)', caseSensitive: false).firstMatch(v);
+    final m = RegExp(r'\d+\s?(GB|TB|جيجابايت|تيرا)', caseSensitive: false)
+        .firstMatch(v);
     return m?.group(0)?.replaceAll('جيجابايت', 'GB') ?? v;
   }
+
   return [
     shorten(norm['المعالج'], cpu: true),
     shorten(norm['الرام']),

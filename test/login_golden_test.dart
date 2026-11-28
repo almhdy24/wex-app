@@ -13,16 +13,19 @@ void main() {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    final router = GoRouter(routes: [GoRoute(path: '/', builder: (c, s) => const LoginScreen())]);
+    final router = GoRouter(
+        routes: [GoRoute(path: '/', builder: (c, s) => const LoginScreen())]);
     await tester.pumpWidget(ProviderScope(
       child: MaterialApp.router(
         theme: buildWexTheme(),
         debugShowCheckedModeBanner: false,
         routerConfig: router,
-        builder: (c, child) => Directionality(textDirection: TextDirection.rtl, child: child!),
+        builder: (c, child) =>
+            Directionality(textDirection: TextDirection.rtl, child: child!),
       ),
     ));
     await tester.pumpAndSettle();
-    await expectLater(find.byType(LoginScreen), matchesGoldenFile('goldens/login.png'));
+    await expectLater(
+        find.byType(LoginScreen), matchesGoldenFile('goldens/login.png'));
   });
 }

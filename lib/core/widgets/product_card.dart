@@ -13,7 +13,11 @@ class ProductCard extends StatefulWidget {
   final ProductListItem product;
   final VoidCallback onTap;
   final List<String> chips; // optional short spec chips
-  const ProductCard({super.key, required this.product, required this.onTap, this.chips = const []});
+  const ProductCard(
+      {super.key,
+      required this.product,
+      required this.onTap,
+      this.chips = const []});
   @override
   State<ProductCard> createState() => _ProductCardState();
 }
@@ -24,7 +28,11 @@ class _ProductCardState extends State<ProductCard> {
   Widget build(BuildContext context) {
     final p = widget.product;
     final isNew = p.condition == 'new';
-    final cond = isNew ? Ar.condNew : (p.condition == 'used_imported' ? Ar.condUsed : conditionLabel(p.condition));
+    final cond = isNew
+        ? Ar.condNew
+        : (p.condition == 'used_imported'
+            ? Ar.condUsed
+            : conditionLabel(p.condition));
     return GestureDetector(
       onTap: widget.onTap,
       onTapDown: (_) => setState(() => _pressed = true),
@@ -39,7 +47,12 @@ class _ProductCardState extends State<ProductCard> {
             color: WexColors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: WexColors.border),
-            boxShadow: const [BoxShadow(color: WexColors.shadowSoft, blurRadius: 18, offset: Offset(0, 8))],
+            boxShadow: const [
+              BoxShadow(
+                  color: WexColors.shadowSoft,
+                  blurRadius: 18,
+                  offset: Offset(0, 8))
+            ],
           ),
           clipBehavior: Clip.antiAlias,
           child: Column(
@@ -57,19 +70,30 @@ class _ProductCardState extends State<ProductCard> {
                           : Hero(
                               tag: 'product-${p.id}',
                               child: CachedNetworkImage(
-                                imageUrl: p.thumbUrl, fit: BoxFit.contain,
+                                imageUrl: p.thumbUrl,
+                                fit: BoxFit.contain,
                                 placeholder: (_, __) => const _Placeholder(),
-                                errorWidget: (_, __, ___) => const _Placeholder(),
+                                errorWidget: (_, __, ___) =>
+                                    const _Placeholder(),
                               ),
                             ),
                     ),
                     if (cond.isNotEmpty)
-                      PositionedDirectional(top: 10, start: 10, child: WexBadge(cond,
-                          bg: isNew ? WexColors.primary : Colors.white,
-                          fg: isNew ? Colors.white : WexColors.textPrimary)),
+                      PositionedDirectional(
+                          top: 10,
+                          start: 10,
+                          child: WexBadge(cond,
+                              bg: isNew ? WexColors.primary : Colors.white,
+                              fg: isNew
+                                  ? Colors.white
+                                  : WexColors.textPrimary)),
                     if (p.isOutOfStock)
-                      Positioned.fill(child: ColoredBox(color: const Color(0x80FFFFFF),
-                          child: Center(child: WexBadge(Ar.outOfStock, bg: WexColors.danger)))),
+                      Positioned.fill(
+                          child: ColoredBox(
+                              color: const Color(0x80FFFFFF),
+                              child: Center(
+                                  child: WexBadge(Ar.outOfStock,
+                                      bg: WexColors.danger)))),
                   ],
                 ),
               ),
@@ -79,12 +103,17 @@ class _ProductCardState extends State<ProductCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    LtrText(p.name, maxLines: 2,
-                        style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, height: 1.3)),
+                    LtrText(p.name,
+                        maxLines: 2,
+                        style: const TextStyle(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            height: 1.3)),
                     if (widget.chips.isNotEmpty) ...[
                       const SizedBox(height: 7),
-                      Wrap(spacing: 5, runSpacing: 5,
-                          children: [for (final c in widget.chips.take(3)) WexChip(c)]),
+                      Wrap(spacing: 5, runSpacing: 5, children: [
+                        for (final c in widget.chips.take(3)) WexChip(c)
+                      ]),
                     ],
                     const SizedBox(height: 8),
                     PriceText(p.priceSdg, size: 15.5),
@@ -103,5 +132,6 @@ class _Placeholder extends StatelessWidget {
   const _Placeholder();
   @override
   Widget build(BuildContext context) => const Center(
-      child: Icon(Icons.laptop_mac_rounded, color: WexColors.disabled, size: 36));
+      child:
+          Icon(Icons.laptop_mac_rounded, color: WexColors.disabled, size: 36));
 }

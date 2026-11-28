@@ -8,11 +8,18 @@ class AppNotification {
   final bool isRead;
   final DateTime? createdAt;
   const AppNotification({
-    required this.id, required this.type, required this.title, required this.body,
-    this.orderNumber, this.url, this.isRead = false, this.createdAt,
+    required this.id,
+    required this.type,
+    required this.title,
+    required this.body,
+    this.orderNumber,
+    this.url,
+    this.isRead = false,
+    this.createdAt,
   });
   factory AppNotification.fromJson(Map<String, dynamic> j) {
-    final data = (j['data'] is Map) ? Map<String, dynamic>.from(j['data']) : const {};
+    final data =
+        (j['data'] is Map) ? Map<String, dynamic>.from(j['data']) : const {};
     return AppNotification(
       id: (j['id'] ?? 0) as int,
       type: (j['type'] ?? '').toString(),

@@ -28,9 +28,11 @@ class CartScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text(Ar.cart)),
       body: items.isEmpty
           ? WexEmptyState(
-              icon: Icons.shopping_bag_outlined, title: Ar.cartEmpty,
-              body: 'أضف أجهزة إلى سلتك وتابع الطلب بسهولة.',
-              ctaLabel: Ar.cartEmptyCta, onCta: () => context.go('/catalog'))
+              icon: Icons.shopping_bag_outlined,
+              title: Ar.cartEmpty,
+              body: Ar.cartEmptyBody,
+              ctaLabel: Ar.cartEmptyCta,
+              onCta: () => context.go('/catalog'))
           : Column(
               children: [
                 Expanded(
@@ -38,23 +40,46 @@ class CartScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(Sp.page),
                     itemCount: items.length,
                     separatorBuilder: (_, __) => const SizedBox(height: Sp.x6),
-                    itemBuilder: (_, i) => _CartLine(
-                      item: items[i],
-                      onInc: () => cart.setQuantity(items[i].productId, items[i].quantity + 1),
-                      onDec: () => cart.setQuantity(items[i].productId, items[i].quantity - 1),
-                      onDelete: () {
+                    itemBuilder: (_, i) {
+                      void remove() {
                         final removed = items[i];
                         final index = i;
                         cart.remove(removed.productId);
                         ScaffoldMessenger.of(context)
                           ..clearSnackBars()
-                          ..showSnackBar(SnackBar(content: const Text(Ar.removed),
-                              action: SnackBarAction(label: Ar.undo, onPressed: () => cart.restore(removed, index))));
-                      },
-                    ),
+                          ..showSnackBar(SnackBar(
+                              content: const Text(Ar.removed),
+                              action: SnackBarAction(
+                                  label: Ar.undo,
+                                  onPressed: () =>
+                                      cart.restore(removed, index))));
+                      }
+
+                      return Dismissible(
+                        key: ValueKey('cart-${items[i].productId}'),
+                        direction: DismissDirection.horizontal,
+                        onDismissed: (_) => remove(),
+                        background:
+                            const _SwipeBg(AlignmentDirectional.centerStart),
+                        secondaryBackground:
+                            const _SwipeBg(AlignmentDirectional.centerEnd),
+                        child: _CartLine(
+                          item: items[i],
+                          onInc: () => cart.setQuantity(
+                              items[i].productId, items[i].quantity + 1),
+                          onDec: () => cart.setQuantity(
+                              items[i].productId, items[i].quantity - 1),
+                          onDelete: remove,
+                        ),
+                      );
+                    },
                   ),
                 ),
-                _Summary(subtotal: subtotal, discount: discount, discountPct: discountPct, total: total),
+                _Summary(
+                    subtotal: subtotal,
+                    discount: discount,
+                    discountPct: discountPct,
+                    total: total),
               ],
             ),
     );
@@ -64,7 +89,11 @@ class CartScreen extends ConsumerWidget {
 class _CartLine extends StatelessWidget {
   final CartItem item;
   final VoidCallback onInc, onDec, onDelete;
-  const _CartLine({required this.item, required this.onInc, required this.onDec, required this.onDelete});
+  const _CartLine(
+      {required this.item,
+      required this.onInc,
+      required this.onDec,
+      required this.onDelete});
   @override
   Widget build(BuildContext context) {
     return WexCard(
@@ -73,23 +102,42 @@ class _CartLine extends StatelessWidget {
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            width: 74, height: 74, color: WexColors.iceLight, padding: const EdgeInsets.all(6),
+            width: 74,
+            height: 74,
+            color: WexColors.iceLight,
+            padding: const EdgeInsets.all(6),
             child: item.thumbUrl.isEmpty
-                ? const Icon(Icons.laptop_mac_rounded, color: WexColors.disabled)
-                : CachedNetworkImage(imageUrl: item.thumbUrl, fit: BoxFit.contain),
+                ? const Icon(Icons.laptop_mac_rounded,
+                    color: WexColors.disabled)
+                : CachedNetworkImage(
+                    imageUrl: item.thumbUrl, fit: BoxFit.contain),
           ),
         ),
         const SizedBox(width: Sp.x6),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          LtrText(item.name, maxLines: 2, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, height: 1.3)),
+        Expanded(
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          LtrText(item.name,
+              maxLines: 2,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w700, fontSize: 14, height: 1.3)),
           const SizedBox(height: 8),
           PriceText(item.lineTotal, size: 15),
         ])),
         Column(children: [
-          InkWell(onTap: onDelete, borderRadius: BorderRadius.circular(8),
-              child: const Padding(padding: EdgeInsets.all(4), child: Icon(Icons.delete_outline_rounded, color: WexColors.danger, size: 20))),
+          InkWell(
+              onTap: onDelete,
+              borderRadius: BorderRadius.circular(8),
+              child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(Icons.delete_outline_rounded,
+                      color: WexColors.danger, size: 20))),
           const SizedBox(height: 4),
-          _Stepper(quantity: item.quantity, atMax: item.quantity >= item.maxQty, onInc: onInc, onDec: onDec),
+          _Stepper(
+              quantity: item.quantity,
+              atMax: item.quantity >= item.maxQty,
+              onInc: onInc,
+              onDec: onDec),
         ]),
       ]),
     );
@@ -100,77 +148,127 @@ class _Stepper extends StatelessWidget {
   final int quantity;
   final bool atMax;
   final VoidCallback onInc, onDec;
-  const _Stepper({required this.quantity, required this.atMax, required this.onInc, required this.onDec});
+  const _Stepper(
+      {required this.quantity,
+      required this.atMax,
+      required this.onInc,
+      required this.onDec});
   @override
   Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(border: Border.all(color: WexColors.border), borderRadius: BorderRadius.circular(Radii.pill)),
+        decoration: BoxDecoration(
+            border: Border.all(color: WexColors.border),
+            borderRadius: BorderRadius.circular(Radii.pill)),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           _sq(Icons.remove_rounded, quantity > 1 ? onDec : null),
-          SizedBox(width: 30, child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 180),
-            transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
-            child: Text('$quantity', key: ValueKey(quantity), textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w800)),
-          )),
+          SizedBox(
+              width: 30,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 180),
+                transitionBuilder: (c, a) =>
+                    ScaleTransition(scale: a, child: c),
+                child: Text('$quantity',
+                    key: ValueKey(quantity),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+              )),
           _sq(Icons.add_rounded, atMax ? null : onInc),
         ]),
       );
-  Widget _sq(IconData i, VoidCallback? onTap) =>
-      IconButton(iconSize: 16, visualDensity: VisualDensity.compact, onPressed: onTap,
-          icon: Icon(i, color: onTap == null ? WexColors.disabled : WexColors.primary));
+  Widget _sq(IconData i, VoidCallback? onTap) => IconButton(
+      iconSize: 16,
+      visualDensity: VisualDensity.compact,
+      onPressed: onTap,
+      icon: Icon(i,
+          color: onTap == null ? WexColors.disabled : WexColors.primary));
 }
 
 class _Summary extends StatelessWidget {
   final int subtotal, discount, discountPct, total;
-  const _Summary({required this.subtotal, required this.discount, required this.discountPct, required this.total});
+  const _Summary(
+      {required this.subtotal,
+      required this.discount,
+      required this.discountPct,
+      required this.total});
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, Sp.x6),
-      decoration: const BoxDecoration(color: WexColors.white,
-          boxShadow: [BoxShadow(color: WexColors.shadowSticky, blurRadius: 24, offset: Offset(0, -6))]),
-      child: SafeArea(top: false, child: Column(children: [
-        _row(Ar.subtotal, subtotal),
-        if (discount > 0) Padding(
-          padding: const EdgeInsets.symmetric(vertical: 3),
-          child: Row(children: [
-            Text('${Ar.discountLine} · $discountPct٪', style: const TextStyle(color: WexColors.textSecondary)),
-            const Spacer(),
+      decoration: const BoxDecoration(color: WexColors.white, boxShadow: [
+        BoxShadow(
+            color: WexColors.shadowSticky,
+            blurRadius: 24,
+            offset: Offset(0, -6))
+      ]),
+      child: SafeArea(
+          top: false,
+          child: Column(children: [
+            _row(Ar.subtotal, subtotal),
+            if (discount > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Row(children: [
+                  Text('${Ar.discountLine} · $discountPct٪',
+                      style: const TextStyle(color: WexColors.textSecondary)),
+                  const Spacer(),
+                  PriceText(discount,
+                      size: 14,
+                      color: WexColors.success,
+                      weight: FontWeight.w800,
+                      negative: true),
+                ]),
+              ),
+            const Padding(
+                padding: EdgeInsets.symmetric(vertical: 6),
+                child: Row(children: [
+                  Icon(Icons.local_shipping_outlined,
+                      size: 15, color: WexColors.textSecondary),
+                  SizedBox(width: 6),
+                  Expanded(
+                      child: Text(Ar.deliveryLater,
+                          style: TextStyle(
+                              color: WexColors.textSecondary, fontSize: 12)))
+                ])),
+            const Divider(),
             Row(children: [
-              const Text('−', style: TextStyle(color: WexColors.success, fontWeight: FontWeight.w800)),
-              PriceText(discount, size: 14, color: WexColors.success, weight: FontWeight.w800),
+              const Text(Ar.total,
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              const Spacer(),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                transitionBuilder: (c, a) => FadeTransition(
+                    opacity: a,
+                    child: SizeTransition(
+                        sizeFactor: a, axis: Axis.horizontal, child: c)),
+                child: PriceText(total, key: ValueKey(total), size: 20),
+              ),
             ]),
-          ]),
-        ),
-        const Padding(padding: EdgeInsets.symmetric(vertical: 6),
-            child: Row(children: [Icon(Icons.local_shipping_outlined, size: 15, color: WexColors.textSecondary), SizedBox(width: 6),
-              Expanded(child: Text(Ar.deliveryLater, style: TextStyle(color: WexColors.textSecondary, fontSize: 12)))])),
-        const Divider(),
-        Row(children: [
-          const Text(Ar.total, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-          const Spacer(),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            transitionBuilder: (c, a) => FadeTransition(opacity: a,
-                child: SizeTransition(sizeFactor: a, axis: Axis.horizontal, child: c)),
-            child: PriceText(total, key: ValueKey(total), size: 20),
-          ),
-        ]),
-        if (discount > 0) Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: Container(
-            margin: const EdgeInsets.only(top: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(color: WexColors.successBg, borderRadius: BorderRadius.circular(Radii.pill)),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              const Text('${Ar.youSave} ', style: TextStyle(color: WexColors.success, fontSize: 12, fontWeight: FontWeight.w700)),
-              PriceText(discount, size: 12, color: WexColors.success, weight: FontWeight.w800),
-            ]),
-          ),
-        ),
-        const SizedBox(height: Sp.x5),
-        WexButton(Ar.continueLabel, onPressed: () => context.push('/checkout')),
-      ])),
+            if (discount > 0)
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Container(
+                  margin: const EdgeInsets.only(top: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                      color: WexColors.successBg,
+                      borderRadius: BorderRadius.circular(Radii.pill)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Text('${Ar.youSave} ',
+                        style: TextStyle(
+                            color: WexColors.success,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700)),
+                    PriceText(discount,
+                        size: 12,
+                        color: WexColors.success,
+                        weight: FontWeight.w800),
+                  ]),
+                ),
+              ),
+            const SizedBox(height: Sp.x5),
+            WexButton(Ar.continueLabel,
+                onPressed: () => context.push('/checkout')),
+          ])),
     );
   }
 
@@ -179,7 +277,22 @@ class _Summary extends StatelessWidget {
         child: Row(children: [
           Text(label, style: const TextStyle(color: WexColors.textSecondary)),
           const Spacer(),
-          PriceText(value, size: 14, color: WexColors.navy, weight: FontWeight.w700),
+          PriceText(value,
+              size: 14, color: WexColors.navy, weight: FontWeight.w700),
         ]),
+      );
+}
+
+class _SwipeBg extends StatelessWidget {
+  final AlignmentGeometry alignment;
+  const _SwipeBg(this.alignment);
+  @override
+  Widget build(BuildContext context) => Container(
+        alignment: alignment,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+            color: WexColors.dangerBg, borderRadius: BorderRadius.circular(18)),
+        child:
+            const Icon(Icons.delete_outline_rounded, color: WexColors.danger),
       );
 }

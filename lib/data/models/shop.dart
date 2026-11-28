@@ -39,6 +39,7 @@ class Shop {
         ordersEnabled: j['orders_enabled'] != false,
         ordersDisabledMessage: (j['orders_disabled_message'] ?? '').toString(),
         tickerEnabled: j['ticker_enabled'] == true,
-        pricesUpdatedAt: DateTime.tryParse((j['prices_updated_at'] ?? '').toString()),
+        pricesUpdatedAt:
+            DateTime.tryParse((j['prices_updated_at'] ?? '').toString()),
       );
 }

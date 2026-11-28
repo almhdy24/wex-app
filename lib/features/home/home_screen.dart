@@ -15,9 +15,11 @@ import '../../data/models/content.dart';
 import '../../data/models/shop.dart';
 import '../../data/repositories/product_repository.dart';
 
-final heroSlidesProvider = FutureProvider.autoDispose((ref) => ref.read(contentRepositoryProvider).heroSlides());
-final featuredProvider = FutureProvider.autoDispose((ref) =>
-    ref.read(productRepositoryProvider).list(const ProductQuery(sort: 'newest', perPage: 8)));
+final heroSlidesProvider = FutureProvider.autoDispose(
+    (ref) => ref.read(contentRepositoryProvider).heroSlides());
+final featuredProvider = FutureProvider.autoDispose((ref) => ref
+    .read(productRepositoryProvider)
+    .list(const ProductQuery(sort: 'newest', perPage: 8)));
 
 const _categories = [
   (type: 'laptop', label: Ar.catLaptops, icon: Icons.laptop_mac_rounded),
@@ -38,7 +40,8 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final shop = ref.watch(shopProvider).valueOrNull;
-    final slides = ref.watch(heroSlidesProvider).valueOrNull ?? const <HeroSlide>[];
+    final slides =
+        ref.watch(heroSlidesProvider).valueOrNull ?? const <HeroSlide>[];
     final featured = ref.watch(featuredProvider);
 
     return Scaffold(
@@ -54,12 +57,17 @@ class HomeScreen extends ConsumerWidget {
             const SliverToBoxAdapter(child: _TrustRow()),
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x5, Sp.page, Sp.x6),
+                padding:
+                    const EdgeInsets.fromLTRB(Sp.page, Sp.x5, Sp.page, Sp.x6),
                 child: Row(children: [
                   for (final c in _categories)
-                    Expanded(child: Padding(
+                    Expanded(
+                        child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: _CategoryTile(label: c.label, icon: c.icon, onTap: () => context.go('/catalog?type=${c.type}')),
+                      child: _CategoryTile(
+                          label: c.label,
+                          icon: c.icon,
+                          onTap: () => context.go('/catalog?type=${c.type}')),
                     )),
                 ]),
               ),
@@ -67,7 +75,8 @@ class HomeScreen extends ConsumerWidget {
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(Sp.page, 0, Sp.page, Sp.x5),
-                child: WexSectionHeader(Ar.sectionNewest, onSeeAll: () => context.go('/catalog')),
+                child: WexSectionHeader(Ar.sectionNewest,
+                    onSeeAll: () => context.go('/catalog')),
               ),
             ),
             featured.when(
@@ -75,26 +84,40 @@ class HomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(horizontal: Sp.page),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.70),
-                  delegate: SliverChildBuilderDelegate((_, __) => const ProductCardSkeleton(), childCount: 4),
+                      crossAxisCount: 2,
+                      mainAxisSpacing: Sp.x6,
+                      crossAxisSpacing: Sp.x6,
+                      childAspectRatio: 0.70),
+                  delegate: SliverChildBuilderDelegate(
+                      (_, __) => const ProductCardSkeleton(),
+                      childCount: 4),
                 ),
               ),
-              error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+              error: (_, __) =>
+                  const SliverToBoxAdapter(child: SizedBox.shrink()),
               data: (page) => SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: Sp.page),
                 sliver: SliverGrid(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.70),
+                      crossAxisCount: 2,
+                      mainAxisSpacing: Sp.x6,
+                      crossAxisSpacing: Sp.x6,
+                      childAspectRatio: 0.70),
                   delegate: SliverChildBuilderDelegate(
-                    (context, i) => FadeInUp(index: i,
-                        child: ProductCard(product: page.items[i], onTap: () => context.push('/products/${page.items[i].slug}'))),
+                    (context, i) => FadeInUp(
+                        index: i,
+                        child: ProductCard(
+                            product: page.items[i],
+                            onTap: () => context
+                                .push('/products/${page.items[i].slug}'))),
                     childCount: page.items.length,
                   ),
                 ),
               ),
             ),
             // "Can't find it?" WhatsApp card (always useful; shown prominently when catalogue is small)
-            SliverToBoxAdapter(child: _HelpCard(whatsapp: shop?.whatsapp ?? '')),
+            SliverToBoxAdapter(
+                child: _HelpCard(whatsapp: shop?.whatsapp ?? '')),
             SliverToBoxAdapter(child: _StoreInfo(shop: shop)),
             const SliverToBoxAdapter(child: SizedBox(height: Sp.x9)),
           ],
@@ -109,8 +132,18 @@ class _Hero extends StatelessWidget {
   const _Hero({required this.slides});
   @override
   Widget build(BuildContext context) {
-    final title = slides.isNotEmpty && slides.first.title.isNotEmpty ? slides.first.title : Ar.heroTitle;
-    final subtitle = slides.isNotEmpty && slides.first.subtitle.isNotEmpty ? slides.first.subtitle : Ar.heroSubtitle;
+    final title = slides.isNotEmpty && slides.first.title.isNotEmpty
+        ? slides.first.title
+        : Ar.heroTitle;
+    final subtitle = slides.isNotEmpty && slides.first.subtitle.isNotEmpty
+        ? slides.first.subtitle
+        : Ar.heroSubtitle;
+    final reduce = MediaQuery.of(context).disableAnimations;
+    Widget loop(Widget w, double dy, int ms) => reduce
+        ? w
+        : w
+            .animate(onPlay: (c) => c.repeat(reverse: true))
+            .moveY(begin: 0, end: dy, duration: ms.ms, curve: Curves.easeInOut);
     return Padding(
       padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, 0),
       child: ClipRRect(
@@ -120,10 +153,24 @@ class _Hero extends StatelessWidget {
           child: Stack(
             children: [
               // Subtle animated glow blobs (one-off, lightweight).
-              Positioned(top: -30, right: -20, child: _Blob(const Color(0x335A54E6), 140)
-                  .animate(onPlay: (c) => c.repeat(reverse: true)).moveY(begin: 0, end: 16, duration: 3200.ms, curve: Curves.easeInOut)),
-              Positioned(bottom: -40, left: -30, child: _Blob(const Color(0x2A6A5CF0), 170)
-                  .animate(onPlay: (c) => c.repeat(reverse: true)).moveY(begin: 0, end: -18, duration: 3800.ms, curve: Curves.easeInOut)),
+              Positioned(
+                  top: -30,
+                  right: -20,
+                  child: loop(_Blob(const Color(0x335A54E6), 140), 16, 3200)),
+              Positioned(
+                  bottom: -40,
+                  left: -30,
+                  child: loop(_Blob(const Color(0x2A6A5CF0), 170), -18, 3800)),
+              // Floating device mark
+              PositionedDirectional(
+                end: 18,
+                bottom: 70,
+                child: loop(
+                    const Icon(Icons.laptop_mac_rounded,
+                        size: 78, color: Color(0x26FFFFFF)),
+                    -8,
+                    2600),
+              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(Sp.x8, Sp.x9, Sp.x8, Sp.x8),
                 child: Column(
@@ -132,24 +179,42 @@ class _Hero extends StatelessWidget {
                     Row(children: const [
                       Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
                       SizedBox(width: 6),
-                      Text(Ar.appName, style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w800)),
+                      Text(Ar.appName,
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800)),
                       Spacer(),
                       CartButton(color: Colors.white),
                     ]),
                     const SizedBox(height: Sp.x5),
-                    Text(title, style: const TextStyle(color: Colors.white, fontSize: 23, fontWeight: FontWeight.w800, height: 1.4)),
+                    Text(title,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 23,
+                            fontWeight: FontWeight.w800,
+                            height: 1.4)),
                     const SizedBox(height: 8),
-                    Text(subtitle, style: const TextStyle(color: WexColors.onDarkMuted, fontSize: 14, height: 1.6)),
+                    Text(subtitle,
+                        style: const TextStyle(
+                            color: WexColors.onDarkMuted,
+                            fontSize: 14,
+                            height: 1.6)),
                     const SizedBox(height: Sp.x8),
                     GestureDetector(
                       onTap: () => context.go('/catalog'),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: Sp.x6, vertical: Sp.x6),
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(Radii.pill)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: Sp.x6, vertical: Sp.x6),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(Radii.pill)),
                         child: Row(children: const [
-                          Icon(Icons.search_rounded, color: WexColors.textSecondary, size: 20),
+                          Icon(Icons.search_rounded,
+                              color: WexColors.textSecondary, size: 20),
                           SizedBox(width: 10),
-                          Text(Ar.searchHint, style: TextStyle(color: WexColors.textSecondary)),
+                          Text(Ar.searchHint,
+                              style: TextStyle(color: WexColors.textSecondary)),
                         ]),
                       ),
                     ),
@@ -170,7 +235,9 @@ class _Blob extends StatelessWidget {
   const _Blob(this.color, this.size);
   @override
   Widget build(BuildContext context) => Container(
-      width: size, height: size, decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle));
 }
 
 class _TrustRow extends StatelessWidget {
@@ -180,19 +247,24 @@ class _TrustRow extends StatelessWidget {
         height: 44,
         child: ListView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: Sp.page, vertical: Sp.x5),
+          padding:
+              const EdgeInsets.symmetric(horizontal: Sp.page, vertical: Sp.x5),
           children: [
             for (final t in _trust)
               Container(
                 margin: const EdgeInsetsDirectional.only(end: Sp.x3),
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 decoration: BoxDecoration(
-                  color: WexColors.white, borderRadius: BorderRadius.circular(Radii.pill),
-                  border: Border.all(color: WexColors.border)),
+                    color: WexColors.white,
+                    borderRadius: BorderRadius.circular(Radii.pill),
+                    border: Border.all(color: WexColors.border)),
                 child: Row(children: [
                   Icon(t.icon, size: 15, color: WexColors.primary),
                   const SizedBox(width: 6),
-                  Text(t.text, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                  Text(t.text,
+                      style: const TextStyle(
+                          fontSize: 12.5, fontWeight: FontWeight.w600)),
                 ]),
               ),
           ],
@@ -204,22 +276,31 @@ class _CategoryTile extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onTap;
-  const _CategoryTile({required this.label, required this.icon, required this.onTap});
+  const _CategoryTile(
+      {required this.label, required this.icon, required this.onTap});
   @override
   Widget build(BuildContext context) => InkWell(
-        onTap: onTap, borderRadius: BorderRadius.circular(Radii.card),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(Radii.card),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: Sp.x8),
           decoration: BoxDecoration(
-            color: WexColors.white, borderRadius: BorderRadius.circular(Radii.card),
-            border: Border.all(color: WexColors.border)),
+              color: WexColors.white,
+              borderRadius: BorderRadius.circular(Radii.card),
+              border: Border.all(color: WexColors.border)),
           child: Column(children: [
             Container(
-              width: 46, height: 46, alignment: Alignment.center,
-              decoration: BoxDecoration(color: WexColors.primary.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(14)),
-              child: Icon(icon, color: WexColors.primary, size: 24)),
+                width: 46,
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                    color: WexColors.primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(14)),
+                child: Icon(icon, color: WexColors.primary, size: 24)),
             const SizedBox(height: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+            Text(label,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
           ]),
         ),
       );
@@ -236,19 +317,32 @@ class _HelpCard extends StatelessWidget {
       child: WexCard(
         child: Row(children: [
           Container(
-            width: 46, height: 46, alignment: Alignment.center,
-            decoration: BoxDecoration(color: WexColors.successBg, borderRadius: BorderRadius.circular(14)),
-            child: const Icon(Icons.chat_rounded, color: WexColors.success)),
+              width: 46,
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                  color: WexColors.successBg,
+                  borderRadius: BorderRadius.circular(14)),
+              child: const Icon(Icons.chat_rounded, color: WexColors.success)),
           const SizedBox(width: Sp.x6),
-          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
-            Text(Ar.notFoundTitle, style: TextStyle(fontWeight: FontWeight.w800)),
-            SizedBox(height: 2),
-            Text(Ar.notFoundBody, style: TextStyle(color: WexColors.textSecondary, fontSize: 12.5, height: 1.5)),
-          ])),
+          Expanded(
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: const [
+                Text(Ar.notFoundTitle,
+                    style: TextStyle(fontWeight: FontWeight.w800)),
+                SizedBox(height: 2),
+                Text(Ar.notFoundBody,
+                    style: TextStyle(
+                        color: WexColors.textSecondary,
+                        fontSize: 12.5,
+                        height: 1.5)),
+              ])),
           const SizedBox(width: 8),
           IconButton(
-            onPressed: () => openWhatsApp(whatsapp, text: 'مرحبًا، أبحث عن جهاز.'),
-            icon: const Icon(Icons.arrow_back_rounded, color: WexColors.primary)),
+              onPressed: () => openWhatsApp(whatsapp, text: Ar.waLooking),
+              icon: const Icon(Icons.arrow_back_rounded,
+                  color: WexColors.primary)),
         ]),
       ),
     );
@@ -261,29 +355,56 @@ class _StoreInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final s = shop;
-    if (s == null || (s.address.isEmpty && s.whatsapp.isEmpty && s.phone.isEmpty)) return const SizedBox.shrink();
+    if (s == null ||
+        (s.address.isEmpty && s.whatsapp.isEmpty && s.phone.isEmpty)) {
+      return const SizedBox.shrink();
+    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, 0),
       child: WexCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('المتجر', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+          const Text(Ar.storeHeading,
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           if (s.address.isNotEmpty) ...[
             const SizedBox(height: 10),
-            Row(children: [const Icon(Icons.place_rounded, size: 18, color: WexColors.primary), const SizedBox(width: 8), Expanded(child: Text(s.address))]),
+            Row(children: [
+              const Icon(Icons.place_rounded,
+                  size: 18, color: WexColors.primary),
+              const SizedBox(width: 8),
+              Expanded(child: Text(s.address))
+            ]),
           ],
           if (s.workingHours.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Row(children: [const Icon(Icons.schedule_rounded, size: 18, color: WexColors.primary), const SizedBox(width: 8), Expanded(child: Text(s.workingHours))]),
+            Row(children: [
+              const Icon(Icons.schedule_rounded,
+                  size: 18, color: WexColors.primary),
+              const SizedBox(width: 8),
+              Expanded(child: Text(s.workingHours))
+            ]),
           ],
           const SizedBox(height: Sp.x6),
           Row(children: [
-            if (s.phone.isNotEmpty) Expanded(child: _ActionBtn(Icons.call_rounded, Ar.callStore, () => openDialer(s.phone))),
-            if (s.phone.isNotEmpty && s.whatsapp.isNotEmpty) const SizedBox(width: 8),
-            if (s.whatsapp.isNotEmpty) Expanded(child: _ActionBtn(Icons.chat_rounded, 'واتساب', () => openWhatsApp(s.whatsapp))),
-            if ((s.address.isNotEmpty || s.shopMapLink.isNotEmpty)) const SizedBox(width: 8),
+            if (s.phone.isNotEmpty)
+              Expanded(
+                  child: _ActionBtn(Icons.call_rounded, Ar.callStore,
+                      () => openDialer(s.phone))),
+            if (s.phone.isNotEmpty && s.whatsapp.isNotEmpty)
+              const SizedBox(width: 8),
+            if (s.whatsapp.isNotEmpty)
+              Expanded(
+                  child: _ActionBtn(Icons.chat_rounded, Ar.whatsappLabel,
+                      () => openWhatsApp(s.whatsapp))),
+            if ((s.address.isNotEmpty || s.shopMapLink.isNotEmpty))
+              const SizedBox(width: 8),
             if (s.address.isNotEmpty || s.shopMapLink.isNotEmpty)
-              Expanded(child: _ActionBtn(Icons.map_rounded, 'الخريطة',
-                  () => s.shopMapLink.isNotEmpty ? openUrl(s.shopMapLink) : openMaps(s.address))),
+              Expanded(
+                  child: _ActionBtn(
+                      Icons.map_rounded,
+                      Ar.mapLabel,
+                      () => s.shopMapLink.isNotEmpty
+                          ? openUrl(s.shopMapLink)
+                          : openMaps(s.address))),
           ]),
         ]),
       ),
@@ -298,14 +419,20 @@ class _ActionBtn extends StatelessWidget {
   const _ActionBtn(this.icon, this.label, this.onTap);
   @override
   Widget build(BuildContext context) => InkWell(
-        onTap: onTap, borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(color: WexColors.iceLight, borderRadius: BorderRadius.circular(12), border: Border.all(color: WexColors.border)),
+          decoration: BoxDecoration(
+              color: WexColors.iceLight,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: WexColors.border)),
           child: Column(children: [
             Icon(icon, size: 20, color: WexColors.primary),
             const SizedBox(height: 4),
-            Text(label, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+            Text(label,
+                style: const TextStyle(
+                    fontSize: 11.5, fontWeight: FontWeight.w700)),
           ]),
         ),
       );

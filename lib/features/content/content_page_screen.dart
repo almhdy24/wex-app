@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/strings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
 import '../../core/design/colors.dart';
@@ -12,19 +13,26 @@ class ContentPageScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(pageProvider(slug));
     return Scaffold(
-      appBar: AppBar(title: Text(async.valueOrNull?.title ?? 'صفحة المتجر')),
+      appBar:
+          AppBar(title: Text(async.valueOrNull?.title ?? Ar.pageFallbackTitle)),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(child: Text('هذه الصفحة غير متوفرة حاليًا.', style: TextStyle(color: WexColors.textSecondary))),
+        error: (_, __) => const Center(
+            child: Text(Ar.pageMissing,
+                style: TextStyle(color: WexColors.textSecondary))),
         data: (page) {
-          final paras = page.body.split(RegExp(r'\n\s*\n')).where((p) => p.trim().isNotEmpty).toList();
+          final paras = page.body
+              .split(RegExp(r'\n\s*\n'))
+              .where((p) => p.trim().isNotEmpty)
+              .toList();
           return ListView(
             padding: const EdgeInsets.all(Sp.page),
             children: [
               for (final p in paras)
                 Padding(
                   padding: const EdgeInsets.only(bottom: Sp.x6),
-                  child: Text(p.trim(), style: const TextStyle(height: 1.9, fontSize: 15)),
+                  child: Text(p.trim(),
+                      style: const TextStyle(height: 1.9, fontSize: 15)),
                 ),
             ],
           );

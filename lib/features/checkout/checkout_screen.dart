@@ -37,28 +37,45 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       if (!ref.read(authControllerProvider).isAuthenticated) return;
     }
     final phone = normalizeSudanPhone(_phone.text);
-    if (!isValidSudanPhone(phone)) { setState(() => _error = 'أدخل رقم هاتف سوداني صحيح (مثال: 09XXXXXXXX)'); return; }
-    if (_type == 'delivery') {
-      if (_zone == null) { setState(() => _error = 'اختر منطقة التوصيل'); return; }
-      if (_address.text.trim().length < 5) { setState(() => _error = 'أدخل عنوان التوصيل بالتفصيل'); return; }
+    if (!isValidSudanPhone(phone)) {
+      setState(() => _error = Ar.invalidPhone);
+      return;
     }
-    final items = ref.read(cartControllerProvider).map((e) => (productId: e.productId, quantity: e.quantity)).toList();
+    if (_type == 'delivery') {
+      if (_zone == null) {
+        setState(() => _error = Ar.pickZone);
+        return;
+      }
+      if (_address.text.trim().length < 5) {
+        setState(() => _error = Ar.addressNeeded);
+        return;
+      }
+    }
+    final items = ref
+        .read(cartControllerProvider)
+        .map((e) => (productId: e.productId, quantity: e.quantity))
+        .toList();
     if (items.isEmpty) return;
 
-    setState(() { _busy = true; _error = null; });
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
       final order = await ref.read(orderRepositoryProvider).create(
-        orderType: _type, items: items, contactPhone: phone,
-        shippingZoneId: _zone?.id,
-        deliveryAddress: _type == 'delivery' ? _address.text.trim() : null,
-        customerNotes: _notes.text.trim());
+          orderType: _type,
+          items: items,
+          contactPhone: phone,
+          shippingZoneId: _zone?.id,
+          deliveryAddress: _type == 'delivery' ? _address.text.trim() : null,
+          customerNotes: _notes.text.trim());
       ref.read(cartControllerProvider.notifier).clear();
       final number = (order['order_number'] ?? '').toString();
-      if (mounted) context.go('/orders/$number');
+      if (mounted) context.go('/orders/$number', extra: {'justCreated': true});
     } on ApiException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {
-      setState(() => _error = 'تعذّر إنشاء الطلب. حاول مرة أخرى.');
+      setState(() => _error = Ar.orderFailed);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -79,9 +96,12 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     if (shop != null && !shop.ordersEnabled) {
       return Scaffold(
         appBar: AppBar(title: const Text(Ar.checkout)),
-        body: WexEmptyState(icon: Icons.pause_circle_outline_rounded,
-            title: 'الطلبات متوقفة مؤقتًا',
-            body: shop.ordersDisabledMessage.isEmpty ? Ar.ordersClosed : shop.ordersDisabledMessage),
+        body: WexEmptyState(
+            icon: Icons.pause_circle_outline_rounded,
+            title: Ar.ordersPausedTitle,
+            body: shop.ordersDisabledMessage.isEmpty
+                ? Ar.ordersClosed
+                : shop.ordersDisabledMessage),
       );
     }
 
@@ -93,78 +113,137 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           child: ListView(
             padding: const EdgeInsets.all(Sp.page),
             children: [
-              const Text(Ar.receiveMethod, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              const Text(Ar.receiveMethod,
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(height: Sp.x5),
               _choice('pickup', Ar.pickup, Ar.pickupFree, Icons.store_rounded),
               const SizedBox(height: Sp.x3),
-              _choice('delivery', Ar.delivery, Ar.deliveryByArea, Icons.local_shipping_rounded),
+              _choice('delivery', Ar.delivery, Ar.deliveryByArea,
+                  Icons.local_shipping_rounded),
               AnimatedSize(
-                duration: const Duration(milliseconds: 260), curve: Curves.easeOut,
+                duration: const Duration(milliseconds: 260),
+                curve: Curves.easeOut,
                 child: _type == 'delivery'
                     ? Padding(
                         padding: const EdgeInsets.only(top: Sp.x6),
                         child: Column(children: [
                           zones.when(
                             loading: () => const LinearProgressIndicator(),
-                            error: (_, __) => const Text('تعذّر تحميل مناطق التوصيل'),
+                            error: (_, __) => const Text(Ar.zonesLoadError),
                             data: (list) => InputDecorator(
-                              decoration: const InputDecoration(labelText: Ar.deliveryArea),
+                              decoration: const InputDecoration(
+                                  labelText: Ar.deliveryArea),
                               child: DropdownButton<ShippingZone>(
-                                value: _zone, isExpanded: true, underline: const SizedBox.shrink(),
+                                value: _zone,
+                                isExpanded: true,
+                                underline: const SizedBox.shrink(),
                                 hint: const Text(Ar.chooseArea),
-                                items: [for (final z in list) DropdownMenuItem(value: z,
-                                    child: Text('${z.name} — ${z.feeSdg == 0 ? Ar.pickupFree : '${z.feeSdg} ج.س'}'))],
+                                items: [
+                                  for (final z in list)
+                                    DropdownMenuItem(
+                                        value: z,
+                                        child: Text(
+                                            '${z.name} — ${z.feeSdg == 0 ? Ar.pickupFree : '${z.feeSdg} ج.س'}'))
+                                ],
                                 onChanged: (z) => setState(() => _zone = z),
                               ),
                             ),
                           ),
                           const SizedBox(height: Sp.x5),
-                          TextField(controller: _address, maxLines: 2,
-                              decoration: const InputDecoration(labelText: Ar.deliveryAddress)),
+                          TextField(
+                              controller: _address,
+                              maxLines: 2,
+                              decoration: const InputDecoration(
+                                  labelText: Ar.deliveryAddress)),
                         ]),
                       )
                     : (shop != null && shop.address.isNotEmpty
                         ? Padding(
                             padding: const EdgeInsets.only(top: Sp.x6),
-                            child: WexCard(padding: const EdgeInsets.all(Sp.x6), child: Row(children: [
-                              const Icon(Icons.place_rounded, color: WexColors.primary, size: 20), const SizedBox(width: 10),
-                              Expanded(child: Text(shop.address, style: const TextStyle(fontWeight: FontWeight.w600))),
-                            ])),
+                            child: WexCard(
+                                padding: const EdgeInsets.all(Sp.x6),
+                                child: Row(children: [
+                                  const Icon(Icons.place_rounded,
+                                      color: WexColors.primary, size: 20),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                      child: Text(shop.address,
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w600))),
+                                ])),
                           )
                         : const SizedBox.shrink()),
               ),
               const SizedBox(height: Sp.x8),
-              const Text('التواصل', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+              const Text(Ar.contactHeading,
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
               const SizedBox(height: Sp.x5),
               TextField(
-                controller: _phone, keyboardType: TextInputType.phone, textDirection: TextDirection.ltr,
-                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9٠-٩۰-۹\s-]'))],
-                onChanged: (v) { final a = toAsciiDigits(v); if (a != v) _phone.value = TextEditingValue(text: a, selection: TextSelection.collapsed(offset: a.length)); },
-                decoration: const InputDecoration(labelText: Ar.phoneLabel, hintText: Ar.phoneHint, prefixIcon: Icon(Icons.phone_rounded)),
+                controller: _phone,
+                keyboardType: TextInputType.phone,
+                textDirection: TextDirection.ltr,
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9٠-٩۰-۹\s-]'))
+                ],
+                onChanged: (v) {
+                  final a = toAsciiDigits(v);
+                  if (a != v) {
+                    _phone.value = TextEditingValue(
+                        text: a,
+                        selection: TextSelection.collapsed(offset: a.length));
+                  }
+                },
+                decoration: const InputDecoration(
+                    labelText: Ar.phoneLabel,
+                    hintText: Ar.phoneHint,
+                    prefixIcon: Icon(Icons.phone_rounded)),
               ),
               const SizedBox(height: Sp.x5),
-              TextField(controller: _notes, decoration: const InputDecoration(labelText: Ar.notesOptional)),
-              if (_error != null) Padding(padding: const EdgeInsets.only(top: Sp.x5),
-                  child: Text(_error!, style: const TextStyle(color: WexColors.danger))),
+              TextField(
+                  controller: _notes,
+                  decoration:
+                      const InputDecoration(labelText: Ar.notesOptional)),
+              if (_error != null)
+                Padding(
+                    padding: const EdgeInsets.only(top: Sp.x5),
+                    child: Text(_error!,
+                        style: const TextStyle(color: WexColors.danger))),
             ],
           ),
         ),
         Container(
           padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, Sp.x6),
-          decoration: const BoxDecoration(color: WexColors.white,
-              boxShadow: [BoxShadow(color: WexColors.shadowSticky, blurRadius: 24, offset: Offset(0, -6))]),
-          child: SafeArea(top: false, child: Column(children: [
-            Row(children: [const Text(Ar.total, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)), const Spacer(),
-                PriceText(total, size: 20)]),
-            const SizedBox(height: 6),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              const Icon(Icons.lock_clock_rounded, size: 14, color: WexColors.textSecondary), const SizedBox(width: 5),
-              Flexible(child: Text('بعد التأكيد نثبّت لك السعر ${formatHoursAr(lockHours)} لتكمل التحويل',
-                  textAlign: TextAlign.center, style: const TextStyle(color: WexColors.textSecondary, fontSize: 12))),
-            ]),
-            const SizedBox(height: Sp.x5),
-            WexButton(Ar.confirmOrder, loading: _busy, onPressed: _busy ? null : _placeOrder),
-          ])),
+          decoration: const BoxDecoration(color: WexColors.white, boxShadow: [
+            BoxShadow(
+                color: WexColors.shadowSticky,
+                blurRadius: 24,
+                offset: Offset(0, -6))
+          ]),
+          child: SafeArea(
+              top: false,
+              child: Column(children: [
+                Row(children: [
+                  const Text(Ar.total,
+                      style:
+                          TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  const Spacer(),
+                  PriceText(total, size: 20)
+                ]),
+                const SizedBox(height: 6),
+                Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  const Icon(Icons.lock_clock_rounded,
+                      size: 14, color: WexColors.textSecondary),
+                  const SizedBox(width: 5),
+                  Flexible(
+                      child: Text(Ar.lockNoticeHours(formatHoursAr(lockHours)),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                              color: WexColors.textSecondary, fontSize: 12))),
+                ]),
+                const SizedBox(height: Sp.x5),
+                WexButton(Ar.confirmOrder,
+                    loading: _busy, onPressed: _busy ? null : _placeOrder),
+              ])),
         ),
       ]),
     );
@@ -173,23 +252,39 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   Widget _choice(String value, String title, String note, IconData icon) {
     final selected = _type == value;
     return InkWell(
-      onTap: () { HapticFeedback.selectionClick(); setState(() => _type = value); },
+      onTap: () {
+        HapticFeedback.selectionClick();
+        setState(() => _type = value);
+      },
       borderRadius: BorderRadius.circular(Radii.card),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.all(Sp.x6),
         decoration: BoxDecoration(
-          color: selected ? WexColors.primary.withValues(alpha: 0.06) : WexColors.white,
-          borderRadius: BorderRadius.circular(Radii.card),
-          border: Border.all(color: selected ? WexColors.primary : WexColors.border, width: selected ? 1.6 : 1)),
+            color: selected
+                ? WexColors.primary.withValues(alpha: 0.06)
+                : WexColors.white,
+            borderRadius: BorderRadius.circular(Radii.card),
+            border: Border.all(
+                color: selected ? WexColors.primary : WexColors.border,
+                width: selected ? 1.6 : 1)),
         child: Row(children: [
-          Icon(icon, color: selected ? WexColors.primary : WexColors.textSecondary),
+          Icon(icon,
+              color: selected ? WexColors.primary : WexColors.textSecondary),
           const SizedBox(width: Sp.x5),
-          Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700))),
-          Text(note, style: const TextStyle(color: WexColors.textSecondary, fontSize: 13)),
+          Expanded(
+              child: Text(title,
+                  style: const TextStyle(fontWeight: FontWeight.w700))),
+          Text(note,
+              style: const TextStyle(
+                  color: WexColors.textSecondary, fontSize: 13)),
           const SizedBox(width: 8),
-          Icon(selected ? Icons.radio_button_checked_rounded : Icons.radio_button_off_rounded,
-              color: selected ? WexColors.primary : WexColors.disabled, size: 20),
+          Icon(
+              selected
+                  ? Icons.radio_button_checked_rounded
+                  : Icons.radio_button_off_rounded,
+              color: selected ? WexColors.primary : WexColors.disabled,
+              size: 20),
         ]),
       ),
     );
@@ -208,19 +303,41 @@ class _StepBar extends StatelessWidget {
         for (var i = 0; i < 3; i++) ...[
           Column(children: [
             Container(
-              width: 28, height: 28, alignment: Alignment.center,
+              width: 28,
+              height: 28,
+              alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: i <= step ? WexColors.primary : WexColors.iceLight, shape: BoxShape.circle,
-                border: Border.all(color: i <= step ? WexColors.primary : WexColors.border)),
+                  color: i <= step ? WexColors.primary : WexColors.iceLight,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                      color: i <= step ? WexColors.primary : WexColors.border)),
               child: i < step
-                  ? const Icon(Icons.check_rounded, color: Colors.white, size: 16)
-                  : Text('${i + 1}', style: TextStyle(color: i <= step ? Colors.white : WexColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w700)),
+                  ? const Icon(Icons.check_rounded,
+                      color: Colors.white, size: 16)
+                  : Text('${i + 1}',
+                      style: TextStyle(
+                          color: i <= step
+                              ? Colors.white
+                              : WexColors.textSecondary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700)),
             ),
             const SizedBox(height: 4),
-            Text(labels[i], style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: i <= step ? WexColors.primary : WexColors.textSecondary)),
+            Text(labels[i],
+                style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: i <= step
+                        ? WexColors.primary
+                        : WexColors.textSecondary)),
           ]),
-          if (i < 2) Expanded(child: Container(height: 2, margin: const EdgeInsets.only(bottom: 18, left: 4, right: 4),
-              color: i < step ? WexColors.primary : WexColors.border)),
+          if (i < 2)
+            Expanded(
+                child: Container(
+                    height: 2,
+                    margin:
+                        const EdgeInsets.only(bottom: 18, left: 4, right: 4),
+                    color: i < step ? WexColors.primary : WexColors.border)),
         ],
       ]),
     );

@@ -31,7 +31,8 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
   void initState() {
     super.initState();
     _startResend();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _nodes.first.requestFocus());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _nodes.first.requestFocus());
   }
 
   void _startResend() {
@@ -47,8 +48,12 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _ctrls) { c.dispose(); }
-    for (final n in _nodes) { n.dispose(); }
+    for (final c in _ctrls) {
+      c.dispose();
+    }
+    for (final n in _nodes) {
+      n.dispose();
+    }
     _name.dispose();
     super.dispose();
   }
@@ -59,7 +64,9 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
     final digits = toAsciiDigits(v);
     if (digits.length > 1) {
       // paste
-      for (var j = 0; j < 6 && j < digits.length; j++) { _ctrls[j].text = digits[j]; }
+      for (var j = 0; j < 6 && j < digits.length; j++) {
+        _ctrls[j].text = digits[j];
+      }
       setState(() {});
       if (_code.length == 6) _submit();
       return;
@@ -71,14 +78,25 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
   }
 
   Future<void> _submit() async {
-    if (_code.length != 6) { setState(() => _error = 'الرمز مكوّن من 6 أرقام'); return; }
-    setState(() { _busy = true; _error = null; });
+    if (_code.length != 6) {
+      setState(() => _error = Ar.verifyCodeLen);
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
       await ref.read(authControllerProvider.notifier).verifyEmailOtp(
-          email: widget.email, code: _code, name: _needName ? _name.text.trim() : null);
+          email: widget.email,
+          code: _code,
+          name: _needName ? _name.text.trim() : null);
       if (mounted) context.go('/');
     } on ApiException catch (e) {
-      setState(() { if (e.fieldError('name') != null) _needName = true; _error = e.message; });
+      setState(() {
+        if (e.fieldError('name') != null) _needName = true;
+        _error = e.message;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -86,7 +104,9 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
 
   Future<void> _resend() async {
     try {
-      await ref.read(authControllerProvider.notifier).requestEmailOtp(widget.email);
+      await ref
+          .read(authControllerProvider.notifier)
+          .requestEmailOtp(widget.email);
       _startResend();
     } catch (_) {}
   }
@@ -99,11 +119,14 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
         padding: const EdgeInsets.all(Sp.x8),
         children: [
           const SizedBox(height: 12),
-          const Text(Ar.verifyTitle, textAlign: TextAlign.center,
+          const Text(Ar.verifyTitle,
+              textAlign: TextAlign.center,
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
           const SizedBox(height: 8),
-          Text('أرسلنا الرمز إلى\n${widget.email}', textAlign: TextAlign.center,
-              style: const TextStyle(color: WexColors.textSecondary, height: 1.6)),
+          Text(Ar.verifySentTo(widget.email),
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(color: WexColors.textSecondary, height: 1.6)),
           const SizedBox(height: Sp.x9),
           Directionality(
             textDirection: TextDirection.ltr,
@@ -112,32 +135,49 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: SizedBox(
-                    width: 46, height: 56,
+                    width: 46,
+                    height: 56,
                     child: TextField(
-                      controller: _ctrls[i], focusNode: _nodes[i],
-                      textAlign: TextAlign.center, keyboardType: TextInputType.number,
+                      controller: _ctrls[i],
+                      focusNode: _nodes[i],
+                      textAlign: TextAlign.center,
+                      keyboardType: TextInputType.number,
                       maxLength: 1,
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
-                      decoration: const InputDecoration(counterText: '', contentPadding: EdgeInsets.zero),
+                      style: const TextStyle(
+                          fontSize: 22, fontWeight: FontWeight.w800),
+                      decoration: const InputDecoration(
+                          counterText: '', contentPadding: EdgeInsets.zero),
                       onChanged: (v) => _onChanged(i, v),
-                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9٠-٩۰-۹]'))],
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                            RegExp(r'[0-9٠-٩۰-۹]'))
+                      ],
                     ),
                   ),
                 ),
             ]),
           ),
-          if (_needName) Padding(
-            padding: const EdgeInsets.only(top: Sp.x6),
-            child: TextField(controller: _name, decoration: const InputDecoration(labelText: Ar.nameHint)),
-          ),
-          if (_error != null) Padding(padding: const EdgeInsets.only(top: Sp.x6),
-              child: Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: WexColors.danger))),
+          if (_needName)
+            Padding(
+              padding: const EdgeInsets.only(top: Sp.x6),
+              child: TextField(
+                  controller: _name,
+                  decoration: const InputDecoration(labelText: Ar.nameHint)),
+            ),
+          if (_error != null)
+            Padding(
+                padding: const EdgeInsets.only(top: Sp.x6),
+                child: Text(_error!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: WexColors.danger))),
           const SizedBox(height: Sp.x7),
-          WexButton(Ar.confirmLogin, loading: _busy, onPressed: _busy ? null : _submit),
+          WexButton(Ar.confirmLogin,
+              loading: _busy, onPressed: _busy ? null : _submit),
           const SizedBox(height: Sp.x6),
           Center(
             child: _resendIn > 0
-                ? Text('${Ar.resendIn} $_resendIn ثانية', style: const TextStyle(color: WexColors.textSecondary))
+                ? Text(Ar.resendCountdown(_resendIn),
+                    style: const TextStyle(color: WexColors.textSecondary))
                 : TextButton(onPressed: _resend, child: const Text(Ar.resend)),
           ),
         ],

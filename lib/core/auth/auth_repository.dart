@@ -31,12 +31,14 @@ class AuthRepository {
   }
 
   Future<({AuthTokens tokens, User user})> refresh(String refreshToken) async {
-    final env = await api.post('/auth/refresh', body: {'refresh_token': refreshToken});
+    final env =
+        await api.post('/auth/refresh', body: {'refresh_token': refreshToken});
     return _parse(env.data as Map<String, dynamic>);
   }
 
   Future<void> logout(String? refreshToken) async {
-    await api.post('/auth/logout', body: {if (refreshToken != null) 'refresh_token': refreshToken});
+    await api.post('/auth/logout',
+        body: {if (refreshToken != null) 'refresh_token': refreshToken});
   }
 
   ({AuthTokens tokens, User user}) _parse(Map<String, dynamic> data) => (

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../core/design/theme.dart';
+import '../core/strings.dart';
 import 'router.dart';
 
 class WexApp extends StatelessWidget {
@@ -10,7 +11,7 @@ class WexApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'ويكس تكنولوجي',
+      title: Ar.appName,
       debugShowCheckedModeBanner: false,
       theme: buildWexTheme(),
       routerConfig: _router,

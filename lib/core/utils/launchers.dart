@@ -14,7 +14,8 @@ String _waNumber(String raw) {
 Future<void> openWhatsApp(String number, {String? text}) async {
   final n = _waNumber(number);
   if (n.isEmpty) return;
-  final uri = Uri.parse('https://wa.me/$n${text != null ? '?text=${Uri.encodeComponent(text)}' : ''}');
+  final uri = Uri.parse(
+      'https://wa.me/$n${text != null ? '?text=${Uri.encodeComponent(text)}' : ''}');
   await launchUrl(uri, mode: LaunchMode.externalApplication);
 }
 
@@ -24,11 +25,18 @@ Future<void> openDialer(String number) async {
 }
 
 Future<void> openMaps(String query) async {
-  final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}');
+  final uri = Uri.parse(
+      'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(query)}');
   await launchUrl(uri, mode: LaunchMode.externalApplication);
 }
 
 Future<void> openUrl(String url) async {
   if (url.isEmpty) return;
   await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+}
+
+/// Opens WhatsApp's contact chooser with [text] prefilled (no recipient).
+Future<void> shareViaWhatsApp(String text) async {
+  final uri = Uri.parse('https://wa.me/?text=${Uri.encodeComponent(text)}');
+  await launchUrl(uri, mode: LaunchMode.externalApplication);
 }

@@ -18,6 +18,8 @@ class NotificationRepository {
     return (d is Map ? (d['unread_count'] ?? 0) : 0) as int;
   }
 
-  Future<void> markRead(int id) => api.patch('/notifications/$id/read', body: {'noop': true});
-  Future<void> markAllRead() => api.post('/notifications/mark-all-read', body: {'noop': true});
+  Future<void> markRead(int id) =>
+      api.patch('/notifications/$id/read', body: {'noop': true});
+  Future<void> markAllRead() =>
+      api.post('/notifications/mark-all-read', body: {'noop': true});
 }

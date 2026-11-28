@@ -3,7 +3,11 @@ import '../../core/network/api_client.dart';
 /// Push preferences (7 booleans; customer sees the first four).
 class PushPrefs {
   final bool orderUpdates, paymentUpdates, priceAlerts, announcements;
-  const PushPrefs({this.orderUpdates = true, this.paymentUpdates = true, this.priceAlerts = true, this.announcements = true});
+  const PushPrefs(
+      {this.orderUpdates = true,
+      this.paymentUpdates = true,
+      this.priceAlerts = true,
+      this.announcements = true});
   factory PushPrefs.fromJson(Map<String, dynamic> j) => PushPrefs(
         orderUpdates: j['order_updates'] != false,
         paymentUpdates: j['payment_updates'] != false,
@@ -17,7 +21,8 @@ class PushRepository {
   PushRepository(this.api);
 
   /// Register this device's FCM token (POST /push/subscriptions, provider fcm).
-  Future<void> registerFcmToken(String token, {String? deviceLabel, String appVersion = '1.0.0'}) async {
+  Future<void> registerFcmToken(String token,
+      {String? deviceLabel, String appVersion = '1.0.0'}) async {
     await api.post('/push/subscriptions', body: {
       'provider': 'fcm',
       'platform': 'android',

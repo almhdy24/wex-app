@@ -18,6 +18,30 @@ import '../features/auth/verify_screen.dart';
 
 final _rootKey = GlobalKey<NavigatorState>();
 
+/// Shared-axis style push: short fade + slight slide from the inline end (RTL-aware).
+/// Respects the OS "remove animations" setting.
+CustomTransitionPage<void> _push(GoRouterState state, Widget child) =>
+    CustomTransitionPage<void>(
+      key: state.pageKey,
+      child: child,
+      transitionDuration: const Duration(milliseconds: 300),
+      reverseTransitionDuration: const Duration(milliseconds: 240),
+      transitionsBuilder: (context, animation, secondary, child) {
+        if (MediaQuery.of(context).disableAnimations) return child;
+        final curved =
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+        return FadeTransition(
+          opacity: curved,
+          child: SlideTransition(
+            position:
+                Tween<Offset>(begin: const Offset(-0.06, 0), end: Offset.zero)
+                    .animate(curved),
+            child: child,
+          ),
+        );
+      },
+    );
+
 final appRouter = _build();
 
 GoRouter _build() => GoRouter(
@@ -27,7 +51,9 @@ GoRouter _build() => GoRouter(
         StatefulShellRoute.indexedStack(
           builder: (context, state, shell) => WexScaffoldShell(shell: shell),
           branches: [
-            StatefulShellBranch(routes: [GoRoute(path: '/', builder: (c, s) => const HomeScreen())]),
+            StatefulShellBranch(routes: [
+              GoRoute(path: '/', builder: (c, s) => const HomeScreen())
+            ]),
             StatefulShellBranch(routes: [
               GoRoute(
                 path: '/catalog',
@@ -37,35 +63,67 @@ GoRouter _build() => GoRouter(
                 ),
               ),
             ]),
-            StatefulShellBranch(routes: [GoRoute(path: '/orders', builder: (c, s) => const OrdersScreen())]),
-            StatefulShellBranch(routes: [GoRoute(path: '/account', builder: (c, s) => const AccountScreen())]),
+            StatefulShellBranch(routes: [
+              GoRoute(path: '/orders', builder: (c, s) => const OrdersScreen())
+            ]),
+            StatefulShellBranch(routes: [
+              GoRoute(
+                  path: '/account', builder: (c, s) => const AccountScreen())
+            ]),
           ],
         ),
         GoRoute(
           path: '/products/:slug',
           parentNavigatorKey: _rootKey,
-          builder: (c, s) => ProductDetailScreen(slug: s.pathParameters['slug']!),
+          pageBuilder: (c, s) =>
+              _push(s, ProductDetailScreen(slug: s.pathParameters['slug']!)),
         ),
-        GoRoute(path: '/cart', parentNavigatorKey: _rootKey, builder: (c, s) => const CartScreen()),
-        GoRoute(path: '/checkout', parentNavigatorKey: _rootKey, builder: (c, s) => const CheckoutScreen()),
+        GoRoute(
+            path: '/cart',
+            parentNavigatorKey: _rootKey,
+            pageBuilder: (c, s) => _push(s, const CartScreen())),
+        GoRoute(
+            path: '/checkout',
+            parentNavigatorKey: _rootKey,
+            pageBuilder: (c, s) => _push(s, const CheckoutScreen())),
         GoRoute(
           path: '/orders/:number',
           parentNavigatorKey: _rootKey,
-          builder: (c, s) => OrderDetailScreen(orderNumber: s.pathParameters['number']!),
+          pageBuilder: (c, s) => _push(
+              s,
+              OrderDetailScreen(
+                orderNumber: s.pathParameters['number']!,
+                justCreated:
+                    (s.extra is Map && (s.extra as Map)['justCreated'] == true),
+              )),
         ),
-        GoRoute(path: '/notifications', parentNavigatorKey: _rootKey, builder: (c, s) => const NotificationsScreen()),
-        GoRoute(path: '/push-preferences', parentNavigatorKey: _rootKey, builder: (c, s) => const PushPreferencesScreen()),
-        GoRoute(path: '/faq', parentNavigatorKey: _rootKey, builder: (c, s) => const FaqScreen()),
+        GoRoute(
+            path: '/notifications',
+            parentNavigatorKey: _rootKey,
+            pageBuilder: (c, s) => _push(s, const NotificationsScreen())),
+        GoRoute(
+            path: '/push-preferences',
+            parentNavigatorKey: _rootKey,
+            pageBuilder: (c, s) => _push(s, const PushPreferencesScreen())),
+        GoRoute(
+            path: '/faq',
+            parentNavigatorKey: _rootKey,
+            pageBuilder: (c, s) => _push(s, const FaqScreen())),
         GoRoute(
           path: '/pages/:slug',
           parentNavigatorKey: _rootKey,
-          builder: (c, s) => ContentPageScreen(slug: s.pathParameters['slug']!),
+          pageBuilder: (c, s) =>
+              _push(s, ContentPageScreen(slug: s.pathParameters['slug']!)),
         ),
-        GoRoute(path: '/login', parentNavigatorKey: _rootKey, builder: (c, s) => const LoginScreen()),
+        GoRoute(
+            path: '/login',
+            parentNavigatorKey: _rootKey,
+            pageBuilder: (c, s) => _push(s, const LoginScreen())),
         GoRoute(
           path: '/verify',
           parentNavigatorKey: _rootKey,
-          builder: (c, s) => VerifyScreen(email: s.uri.queryParameters['email'] ?? ''),
+          pageBuilder: (c, s) => _push(
+              s, VerifyScreen(email: s.uri.queryParameters['email'] ?? '')),
         ),
       ],
     );

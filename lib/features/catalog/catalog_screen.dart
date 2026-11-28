@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../core/strings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/design/colors.dart';
@@ -11,16 +12,16 @@ import '../../data/repositories/product_repository.dart';
 import 'catalog_controller.dart';
 
 const _types = [
-  (value: null, label: 'الكل'),
-  (value: 'laptop', label: 'لابتوبات'),
-  (value: 'phone', label: 'هواتف'),
-  (value: 'accessory', label: 'ملحقات'),
+  (value: null, label: Ar.filterAll),
+  (value: 'laptop', label: Ar.filterLaptops),
+  (value: 'phone', label: Ar.filterPhones),
+  (value: 'accessory', label: Ar.filterAccessories),
 ];
 
 const _sorts = [
-  (value: 'newest', label: 'الأحدث'),
-  (value: 'price_asc', label: 'الأقل سعرًا'),
-  (value: 'price_desc', label: 'الأعلى سعرًا'),
+  (value: 'newest', label: Ar.sortNewest),
+  (value: 'price_asc', label: Ar.sortPriceAsc),
+  (value: 'price_desc', label: Ar.sortPriceDesc),
 ];
 
 class CatalogScreen extends ConsumerStatefulWidget {
@@ -31,26 +32,45 @@ class CatalogScreen extends ConsumerStatefulWidget {
   ConsumerState<CatalogScreen> createState() => _CatalogScreenState();
 }
 
-String _sortLabel(String? v) => _sorts.firstWhere((s) => s.value == (v ?? 'newest'), orElse: () => _sorts.first).label;
+String _sortLabel(String? v) => _sorts
+    .firstWhere((s) => s.value == (v ?? 'newest'), orElse: () => _sorts.first)
+    .label;
 
-void _openSortSheet(BuildContext context, String current, void Function(String) onPick) {
+void _openSortSheet(
+    BuildContext context, String current, void Function(String) onPick) {
   showModalBottomSheet(
     context: context,
     backgroundColor: WexColors.white,
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
+    shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
     builder: (ctx) => SafeArea(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         const SizedBox(height: 12),
-        Container(width: 40, height: 4, decoration: BoxDecoration(color: WexColors.border, borderRadius: BorderRadius.circular(2))),
+        Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+                color: WexColors.border,
+                borderRadius: BorderRadius.circular(2))),
         const SizedBox(height: 8),
-        const Padding(padding: EdgeInsets.all(Sp.x6), child: Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: Text('ترتيب حسب', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)))),
+        const Padding(
+            padding: EdgeInsets.all(Sp.x6),
+            child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(Ar.sortBy,
+                    style:
+                        TextStyle(fontWeight: FontWeight.w800, fontSize: 16)))),
         for (final s in _sorts)
           ListTile(
-            title: Text(s.label, style: const TextStyle(fontWeight: FontWeight.w600)),
-            trailing: current == s.value ? const Icon(Icons.check_rounded, color: WexColors.primary) : null,
-            onTap: () { onPick(s.value); Navigator.pop(ctx); },
+            title: Text(s.label,
+                style: const TextStyle(fontWeight: FontWeight.w600)),
+            trailing: current == s.value
+                ? const Icon(Icons.check_rounded, color: WexColors.primary)
+                : null,
+            onTap: () {
+              onPick(s.value);
+              Navigator.pop(ctx);
+            },
           ),
         const SizedBox(height: 8),
       ]),
@@ -59,8 +79,8 @@ void _openSortSheet(BuildContext context, String current, void Function(String) 
 }
 
 class _CatalogScreenState extends ConsumerState<CatalogScreen> {
-  late final ProductQuery _initial =
-      ProductQuery(type: widget.initialType, search: widget.initialSearch, sort: 'newest');
+  late final ProductQuery _initial = ProductQuery(
+      type: widget.initialType, search: widget.initialSearch, sort: 'newest');
   final _searchCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   Timer? _debounce;
@@ -70,7 +90,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     super.initState();
     _searchCtrl.text = widget.initialSearch ?? '';
     _scrollCtrl.addListener(() {
-      if (_scrollCtrl.position.pixels > _scrollCtrl.position.maxScrollExtent - 400) {
+      if (_scrollCtrl.position.pixels >
+          _scrollCtrl.position.maxScrollExtent - 400) {
         ref.read(catalogControllerProvider(_initial).notifier).loadMore();
       }
     });
@@ -86,8 +107,11 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
 
   void _onSearchChanged(String v) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300),
-        () => ref.read(catalogControllerProvider(_initial).notifier).setSearch(v.trim()));
+    _debounce = Timer(
+        const Duration(milliseconds: 300),
+        () => ref
+            .read(catalogControllerProvider(_initial).notifier)
+            .setSearch(v.trim()));
   }
 
   @override
@@ -96,7 +120,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
     final ctrl = ref.read(catalogControllerProvider(_initial).notifier);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('المتجر'), actions: const [CartButton()]),
+      appBar:
+          AppBar(title: const Text(Ar.navStore), actions: const [CartButton()]),
       body: Column(
         children: [
           Padding(
@@ -106,13 +131,17 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
               textDirection: TextDirection.rtl,
               onChanged: _onSearchChanged,
               decoration: InputDecoration(
-                hintText: 'ابحث عن جهاز أو ماركة',
+                hintText: Ar.searchHint,
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: _searchCtrl.text.isEmpty
                     ? null
                     : IconButton(
                         icon: const Icon(Icons.close),
-                        onPressed: () { _searchCtrl.clear(); ctrl.setSearch(''); setState(() {}); },
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          ctrl.setSearch('');
+                          setState(() {});
+                        },
                       ),
               ),
             ),
@@ -121,7 +150,8 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             height: 48,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: Sp.page, vertical: Sp.x3),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: Sp.page, vertical: Sp.x3),
               children: [
                 for (final t in _types)
                   Padding(
@@ -132,7 +162,9 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
                       onSelected: (_) => ctrl.setType(t.value),
                       selectedColor: WexColors.royal,
                       labelStyle: TextStyle(
-                          color: state.query.type == t.value ? Colors.white : WexColors.navy,
+                          color: state.query.type == t.value
+                              ? Colors.white
+                              : WexColors.navy,
                           fontWeight: FontWeight.w700),
                     ),
                   ),
@@ -144,22 +176,30 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
             child: Row(
               children: [
                 if (!state.loading && state.total > 0)
-                  Text('${state.total} نتيجة',
-                      style: const TextStyle(color: WexColors.textSecondary, fontSize: 13)),
+                  Text(Ar.results(state.total),
+                      style: const TextStyle(
+                          color: WexColors.textSecondary, fontSize: 13)),
                 const Spacer(),
                 InkWell(
-                  onTap: () => _openSortSheet(context, state.query.sort ?? 'newest', ctrl.setSort),
+                  onTap: () => _openSortSheet(
+                      context, state.query.sort ?? 'newest', ctrl.setSort),
                   borderRadius: BorderRadius.circular(Radii.pill),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
-                      color: WexColors.white, borderRadius: BorderRadius.circular(Radii.pill),
-                      border: Border.all(color: WexColors.border)),
+                        color: WexColors.white,
+                        borderRadius: BorderRadius.circular(Radii.pill),
+                        border: Border.all(color: WexColors.border)),
                     child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.sort_rounded, size: 16, color: WexColors.primary),
+                      const Icon(Icons.sort_rounded,
+                          size: 16, color: WexColors.primary),
                       const SizedBox(width: 6),
-                      Text(_sortLabel(state.query.sort), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-                      const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: WexColors.textSecondary),
+                      Text(_sortLabel(state.query.sort),
+                          style: const TextStyle(
+                              fontSize: 13, fontWeight: FontWeight.w700)),
+                      const Icon(Icons.keyboard_arrow_down_rounded,
+                          size: 18, color: WexColors.textSecondary),
                     ]),
                   ),
                 ),
@@ -177,16 +217,20 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
       return GridView.builder(
         padding: const EdgeInsets.all(Sp.page),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.70),
+            crossAxisCount: 2,
+            mainAxisSpacing: Sp.x6,
+            crossAxisSpacing: Sp.x6,
+            childAspectRatio: 0.70),
         itemCount: 6,
         itemBuilder: (_, __) => const ProductCardSkeleton(),
       );
     }
     if (state.error != null && state.items.isEmpty) {
-      return _Message(icon: Icons.wifi_off, text: state.error!, onRetry: ctrl.refresh);
+      return _Message(
+          icon: Icons.wifi_off, text: state.error!, onRetry: ctrl.refresh);
     }
     if (state.items.isEmpty) {
-      return const _Message(icon: Icons.search_off, text: 'لا توجد نتائج مطابقة');
+      return const _Message(icon: Icons.search_off, text: Ar.noResults);
     }
     return RefreshIndicator(
       onRefresh: ctrl.refresh,
@@ -194,14 +238,24 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
         controller: _scrollCtrl,
         padding: const EdgeInsets.all(Sp.page),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, mainAxisSpacing: Sp.x6, crossAxisSpacing: Sp.x6, childAspectRatio: 0.70),
+            crossAxisCount: 2,
+            mainAxisSpacing: Sp.x6,
+            crossAxisSpacing: Sp.x6,
+            childAspectRatio: 0.70),
         itemCount: state.items.length + (state.hasMore ? 2 : 0),
         itemBuilder: (context, i) {
           if (i >= state.items.length) {
-            return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
+            return const Center(
+                child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: CircularProgressIndicator()));
           }
           final p = state.items[i];
-          return FadeInUp(index: i, child: ProductCard(product: p, onTap: () => context.push('/products/${p.slug}')));
+          return FadeInUp(
+              index: i,
+              child: ProductCard(
+                  product: p,
+                  onTap: () => context.push('/products/${p.slug}')));
         },
       ),
     );
@@ -223,7 +277,7 @@ class _Message extends StatelessWidget {
             Text(text, style: const TextStyle(color: WexColors.textSecondary)),
             if (onRetry != null) ...[
               const SizedBox(height: 12),
-              OutlinedButton(onPressed: onRetry, child: const Text('إعادة المحاولة')),
+              OutlinedButton(onPressed: onRetry, child: const Text(Ar.retry)),
             ],
           ],
         ),
