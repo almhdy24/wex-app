@@ -223,7 +223,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                           Ar.priceLockBadge(formatHoursAr(lockHours))),
                       const SizedBox(height: Sp.x9),
                       _SectionTitle(3, Ar.contactHeading),
-                      const SizedBox(height: Sp.x5),
+                      const SizedBox(height: Sp.x8),
                       TextField(
                         controller: _phone,
                         keyboardType: TextInputType.phone,

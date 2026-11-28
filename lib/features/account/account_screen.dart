@@ -13,7 +13,7 @@ import '../../core/widgets/illustrations.dart';
 import '../../core/widgets/wex_kit.dart';
 import '../../core/widgets/wex_widgets.dart';
 
-const _appVersion = '1.0.6';
+const _appVersion = '1.0.7';
 
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
@@ -129,9 +129,14 @@ class AccountScreen extends ConsumerWidget {
             const SizedBox(height: Sp.x6),
             SurfaceCard(
                 padding: EdgeInsets.zero,
-                child: _item(Icons.logout_rounded, Ar.logout,
-                    () => ref.read(authControllerProvider.notifier).logout(),
-                    tint: WexColors.danger)),
+                child: Material(
+                    type: MaterialType.transparency,
+                    child: _item(
+                        Icons.logout_rounded,
+                        Ar.logout,
+                        () =>
+                            ref.read(authControllerProvider.notifier).logout(),
+                        tint: WexColors.danger))),
           ],
           const SizedBox(height: Sp.x8),
           Center(
@@ -160,7 +165,11 @@ class AccountScreen extends ConsumerWidget {
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
                   color: WexColors.textSecondary))),
-      SurfaceCard(padding: EdgeInsets.zero, child: Column(children: children)),
+      SurfaceCard(
+          padding: EdgeInsets.zero,
+          child: Material(
+              type: MaterialType.transparency,
+              child: Column(children: children))),
     ]);
   }
 

@@ -313,23 +313,25 @@ class _OrderCard extends ConsumerWidget {
                                         fontWeight: FontWeight.w700,
                                         height: 1.35)),
                                 const SizedBox(height: 4),
-                                Row(children: [
-                                  LtrText(order.orderNumber,
-                                      style: WexText.caption),
-                                  if (order.itemsCount > 1) ...[
-                                    const SizedBox(width: 8),
-                                    StatusPill(Ar.itemsChip(order.itemsCount),
-                                        tone: Tone.neutral, dot: false),
-                                  ],
-                                ]),
+                                LtrText(order.orderNumber,
+                                    maxLines: 1, style: WexText.caption),
                               ]),
                         ),
                         const SizedBox(width: 8),
-                        StatusPill(
-                            order.statusLabel.isEmpty
-                                ? statusText(order.status)
-                                : order.statusLabel,
-                            tone: tone),
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              StatusPill(
+                                  order.statusLabel.isEmpty
+                                      ? statusText(order.status)
+                                      : order.statusLabel,
+                                  tone: tone),
+                              if (order.itemsCount > 1) ...[
+                                const SizedBox(height: 6),
+                                StatusPill(Ar.itemsChip(order.itemsCount),
+                                    tone: Tone.neutral, dot: false),
+                              ],
+                            ]),
                       ]),
                       const SizedBox(height: 12),
                       Row(children: [

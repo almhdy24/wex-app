@@ -359,18 +359,21 @@ class _CheckoutBar extends StatelessWidget {
         ),
         child: SafeArea(
           top: false,
-          child: Row(children: [
-            Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(Ar.total, style: WexText.caption),
-                  _CountUpPrice(total),
-                ]),
-            const SizedBox(width: Sp.x7),
-            Expanded(
-                child: WexButton(Ar.continueLabel,
-                    onPressed: () => context.push('/checkout'))),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Row(children: [
+              const Text(Ar.total,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: WexColors.textSecondary)),
+              const Spacer(),
+              _CountUpPrice(total),
+            ]),
+            const SizedBox(height: Sp.x5),
+            WexButton(Ar.continueLabel,
+                icon: const Icon(Icons.shopping_bag_rounded,
+                    color: Colors.white, size: 20),
+                onPressed: () => context.push('/checkout')),
           ]),
         ),
       );
