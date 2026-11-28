@@ -139,6 +139,7 @@ class OrderListItem {
   final DateTime? createdAt;
   final String deliveryType; // pickup|delivery
   final int itemsCount;
+  final int linesCount; // distinct products
   final String? firstItemName;
   final String? firstItemImage;
   final int secondsRemaining;
@@ -151,6 +152,7 @@ class OrderListItem {
       this.createdAt,
       this.deliveryType = '',
       this.itemsCount = 0,
+      this.linesCount = 0,
       this.firstItemName,
       this.firstItemImage,
       this.secondsRemaining = 0});
@@ -170,6 +172,7 @@ class OrderListItem {
       createdAt: DateTime.tryParse((j['created_at'] ?? '').toString()),
       deliveryType: (j['delivery_type'] ?? '').toString(),
       itemsCount: ((j['items_count'] ?? 0) as num).round(),
+      linesCount: ((j['lines_count'] ?? 0) as num).round(),
       firstItemName: first?['name']?.toString(),
       firstItemImage:
           (img == null || img.isEmpty) ? null : Env.assetUrl(img),
