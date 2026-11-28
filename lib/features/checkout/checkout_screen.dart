@@ -12,6 +12,10 @@ import '../../core/utils/arabic_duration.dart';
 import '../../core/utils/ascii_digits.dart';
 import '../../core/utils/sudan_phone.dart';
 import '../../core/widgets/price_text.dart';
+import '../../core/design/typography.dart';
+import '../../core/utils/formatters.dart';
+import '../../core/utils/product_name.dart';
+import '../../data/models/cart_item.dart';
 import '../../core/widgets/wex_widgets.dart';
 import '../../data/models/catalog_meta.dart';
 import '../cart/cart_controller.dart';
@@ -143,7 +147,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                     DropdownMenuItem(
                                         value: z,
                                         child: Text(
-                                            '${z.name} — ${z.feeSdg == 0 ? Ar.pickupFree : '${z.feeSdg} ج.س'}'))
+                                            '${z.name} — ${z.feeSdg == 0 ? Ar.pickupFree : formatSdg(z.feeSdg)}'))
                                 ],
                                 onChanged: (z) => setState(() => _zone = z),
                               ),
@@ -196,6 +200,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 decoration: const InputDecoration(
                     labelText: Ar.phoneLabel,
                     hintText: Ar.phoneHint,
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
                     prefixIcon: Icon(Icons.phone_rounded)),
               ),
               const SizedBox(height: Sp.x5),
@@ -222,6 +227,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           child: SafeArea(
               top: false,
               child: Column(children: [
+                _OrderSummary(
+                  items: cart,
+                  subtotal: subtotal,
+                  discount: discount,
+                  discountPct: discountPct,
+                  shippingFee: shippingFee,
+                  delivery: _type == 'delivery',
+                ),
+                const SizedBox(height: 8),
                 Row(children: [
                   const Text(Ar.total,
                       style:
@@ -342,4 +356,84 @@ class _StepBar extends StatelessWidget {
       ]),
     );
   }
+}
+
+
+/// Collapsible order summary above the CTA: items + subtotal / discount / delivery.
+class _OrderSummary extends StatefulWidget {
+  final List<CartItem> items;
+  final int subtotal, discount, discountPct, shippingFee;
+  final bool delivery;
+  const _OrderSummary({
+    required this.items, required this.subtotal, required this.discount,
+    required this.discountPct, required this.shippingFee, required this.delivery,
+  });
+  @override
+  State<_OrderSummary> createState() => _OrderSummaryState();
+}
+
+class _OrderSummaryState extends State<_OrderSummary> {
+  bool _open = false;
+  @override
+  Widget build(BuildContext context) {
+    final count = widget.items.fold<int>(0, (s, i) => s + i.quantity);
+    return Column(children: [
+      InkWell(
+        onTap: () => setState(() => _open = !_open),
+        borderRadius: BorderRadius.circular(10),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Row(children: [
+            const Icon(Icons.receipt_long_rounded, size: 18, color: WexColors.primary),
+            const SizedBox(width: 8),
+            Text('${Ar.orderSummary} · $count ${Ar.itemsWord}', style: const TextStyle(fontWeight: FontWeight.w600)),
+            const Spacer(),
+            AnimatedRotation(
+              turns: _open ? 0.5 : 0,
+              duration: const Duration(milliseconds: 220),
+              child: const Icon(Icons.keyboard_arrow_down_rounded, color: WexColors.textSecondary),
+            ),
+          ]),
+        ),
+      ),
+      AnimatedSize(
+        duration: const Duration(milliseconds: 240),
+        curve: Curves.easeOut,
+        alignment: Alignment.topCenter,
+        child: _open
+            ? ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 220),
+                child: SingleChildScrollView(
+                  child: Column(children: [
+                    for (final i in widget.items)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(children: [
+                          Expanded(
+                            child: Text('${normalizeProductName(i.name).full} × ${i.quantity}',
+                                maxLines: 1, overflow: TextOverflow.ellipsis, style: WexText.caption),
+                          ),
+                          PriceText(i.lineTotal, size: 13, color: WexColors.textPrimary, weight: FontWeight.w700),
+                        ]),
+                      ),
+                    const Divider(height: 14),
+                    _line(Ar.subtotal, PriceText(widget.subtotal, size: 13, color: WexColors.textPrimary, weight: FontWeight.w700)),
+                    if (widget.discount > 0)
+                      _line(Ar.discountPercent(widget.discountPct),
+                          PriceText(widget.discount, size: 13, color: WexColors.success, weight: FontWeight.w800, negative: true)),
+                    if (widget.delivery)
+                      _line(Ar.deliveryFee, PriceText(widget.shippingFee, size: 13, color: WexColors.textPrimary, weight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                  ]),
+                ),
+              )
+            : const SizedBox(width: double.infinity),
+      ),
+    ]);
+  }
+
+  Widget _line(String label, Widget value) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Row(children: [Text(label, style: WexText.caption), const Spacer(), value]),
+      );
 }

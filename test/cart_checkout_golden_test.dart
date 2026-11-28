@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wex_app/app/providers.dart';
 import 'package:wex_app/core/design/theme.dart';
 import 'package:wex_app/data/models/catalog_meta.dart';
+import 'package:wex_app/data/models/product.dart';
 import 'package:wex_app/data/models/shop.dart';
 import 'package:wex_app/features/cart/cart_screen.dart';
 import 'package:wex_app/features/checkout/checkout_screen.dart';
@@ -28,7 +29,7 @@ const _shop = Shop(
     tickerEnabled: false);
 
 Future<void> _pump(WidgetTester t, Widget screen, String file) async {
-  t.view.physicalSize = const Size(390 * 3, 844 * 3);
+  t.view.physicalSize = const Size(390 * 3, 1000 * 3);
   t.view.devicePixelRatio = 3;
   addTearDown(t.view.reset);
   SharedPreferences.setMockInitialValues({
@@ -56,6 +57,12 @@ Future<void> _pump(WidgetTester t, Widget screen, String file) async {
   await t.pumpWidget(ProviderScope(
     overrides: [
       shopProvider.overrideWith((ref) async => _shop),
+      accessoriesProvider.overrideWith((ref) async => const [
+            ProductListItem(id: 11, slug: 'mouse', type: 'accessory', name: 'Logitech Wireless Mouse B170',
+                condition: 'new', priceSdg: 22800, stockStatus: StockStatus.inStock),
+            ProductListItem(id: 12, slug: 'bag', type: 'accessory', name: 'شنطة ظهر لابتوب مقاومة للماء',
+                condition: 'new', priceSdg: 32500, stockStatus: StockStatus.inStock),
+          ]),
       zonesProvider.overrideWith((ref) async =>
           [const ShippingZone(id: 1, name: 'الخرطوم', feeSdg: 5000)]),
     ],
@@ -69,6 +76,7 @@ Future<void> _pump(WidgetTester t, Widget screen, String file) async {
               Directionality(textDirection: TextDirection.rtl, child: child!)),
     ),
   ));
+  await t.pump(const Duration(milliseconds: 600));
   await t.pump(const Duration(milliseconds: 600));
   await expectLater(find.byType(Scaffold).first, matchesGoldenFile(file));
 }

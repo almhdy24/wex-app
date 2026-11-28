@@ -1,3 +1,5 @@
+import 'utils/formatters.dart';
+
 /// All user-facing Arabic copy, centralized. Modern Standard Arabic, warm,
 /// Sudanese-friendly. Keep short and consistent.
 abstract final class Ar {
@@ -233,4 +235,10 @@ abstract final class Ar {
   static const inStock = 'متوفر';
   static const priceLabel = 'السعر';
   static const allSpecs = 'كل المواصفات';
+
+  // Cart (Round 2)
+  static String discountPercent(int pct) => 'خصم ${formatPercent(pct)}';
+  static const completeSetup = 'أكمل جهازك';
+  static const orderSummary = 'ملخص الطلب';
+  static const itemsWord = 'منتجات';
 }

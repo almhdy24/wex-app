@@ -66,3 +66,9 @@ final pushServiceProvider = Provider((ref) => PushService(
         }
       },
     ));
+
+/// Real accessories from the store (for "أكمل جهازك" in the cart). Empty → row hidden.
+final accessoriesProvider = FutureProvider.autoDispose((ref) async {
+  final page = await ref.read(productRepositoryProvider).list(const ProductQuery(type: 'accessory', perPage: 8));
+  return page.items;
+});
