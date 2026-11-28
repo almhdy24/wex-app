@@ -11,6 +11,12 @@ import '../../app/providers.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
+import '../../core/design/tones.dart';
+import '../../core/design/typography.dart';
+import '../../core/utils/formatters.dart';
+import '../../core/widgets/illustrations.dart';
+import '../../core/widgets/wex_kit.dart';
+import 'orders_screen.dart' show statusTone, statusText;
 import '../../core/utils/launchers.dart';
 import '../../core/widgets/price_text.dart';
 import '../../core/widgets/wex_widgets.dart';
@@ -100,6 +106,8 @@ class _OrderDetailScreenState extends ConsumerState<OrderDetailScreen> {
                 _SuccessHeader(orderNumber: o.orderNumber),
                 const SizedBox(height: Sp.x6),
               ],
+              _StatusHeader(order: o),
+              const SizedBox(height: Sp.x6),
               if (o.isPending && o.secondsRemaining > 0)
                 _LockCard(
                     order: o,
@@ -319,31 +327,70 @@ class _Timeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (order.timeline.isEmpty) return const SizedBox.shrink();
+    final events = order.timeline;
+    final dead = order.status == OrderStatus.cancelled ||
+        order.status == OrderStatus.expired;
     return _card(
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text(Ar.orderPath,
           style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-      const SizedBox(height: 12),
-      for (final e in order.timeline)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Padding(
-                padding: EdgeInsets.only(top: 3),
-                child:
-                    Icon(Icons.check_circle, size: 18, color: WexColors.royal)),
+      const SizedBox(height: 14),
+      for (var i = 0; i < events.length; i++)
+        IntrinsicHeight(
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            SizedBox(
+              width: 32,
+              child: Column(children: [
+                // Coloured circle (done = success tint, current = brand, dead end = danger).
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: (i == events.length - 1
+                            ? (dead ? Tone.danger : Tone.brand)
+                            : Tone.success)
+                        .bg,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    i == events.length - 1
+                        ? (dead ? Icons.close_rounded : Icons.circle)
+                        : Icons.check_rounded,
+                    size: i == events.length - 1 && !dead ? 10 : 16,
+                    color: (i == events.length - 1
+                            ? (dead ? Tone.danger : Tone.brand)
+                            : Tone.success)
+                        .fg,
+                  ),
+                ),
+                if (i != events.length - 1)
+                  Expanded(child: Container(width: 2, color: WexColors.border)),
+              ]),
+            ),
             const SizedBox(width: 10),
             Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 16),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                  Text(e.statusText,
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
-                  if ((e.note ?? '').isNotEmpty)
-                    Text(e.note!,
-                        style: const TextStyle(
-                            color: WexColors.textSecondary, fontSize: 13)),
-                ])),
+                      Text(events[i].statusText,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w700, height: 1.3)),
+                      if (events[i].createdAt != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(formatDateTimeAr(events[i].createdAt!),
+                              style: WexText.caption),
+                        ),
+                      if ((events[i].note ?? '').isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Text(events[i].note!, style: WexText.caption),
+                        ),
+                    ]),
+              ),
+            ),
           ]),
         ),
     ]));
@@ -370,18 +417,7 @@ class _Note extends StatelessWidget {
       );
 }
 
-Widget _card(Widget child) => Container(
-      padding: const EdgeInsets.all(Sp.x7),
-      decoration: BoxDecoration(
-        color: WexColors.white,
-        borderRadius: BorderRadius.circular(Radii.card),
-        boxShadow: const [
-          BoxShadow(
-              color: Color(0x0F061A55), blurRadius: 6, offset: Offset(0, 2))
-        ],
-      ),
-      child: child,
-    );
+Widget _card(Widget child) => SurfaceCard(child: child);
 
 /// Animated confirmation shown right after checkout.
 class _SuccessHeader extends StatelessWidget {
@@ -389,24 +425,10 @@ class _SuccessHeader extends StatelessWidget {
   const _SuccessHeader({required this.orderNumber});
   @override
   Widget build(BuildContext context) {
-    return WexCard(
+    return SurfaceCard(
+      soft: true,
       child: Column(children: [
-        Container(
-          width: 84,
-          height: 84,
-          alignment: Alignment.center,
-          decoration: const BoxDecoration(
-              color: WexColors.successBg, shape: BoxShape.circle),
-          child: const Icon(Icons.check_rounded,
-              color: WexColors.success, size: 46),
-        )
-            .animate()
-            .scale(
-                begin: const Offset(0.4, 0.4),
-                end: const Offset(1, 1),
-                duration: 520.ms,
-                curve: Curves.elasticOut)
-            .fadeIn(duration: 200.ms),
+        const AnimatedCheck(size: 84),
         const SizedBox(height: Sp.x6),
         const Text(Ar.orderCreated,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800))
@@ -446,6 +468,42 @@ class _SuccessHeader extends StatelessWidget {
             icon: const Icon(Icons.share_rounded,
                 color: WexColors.primary, size: 20),
             onPressed: () => shareViaWhatsApp(Ar.shareOrderText(orderNumber))),
+      ]),
+    );
+  }
+}
+
+/// Status summary: tinted icon square, status pill and the order number.
+class _StatusHeader extends StatelessWidget {
+  final OrderDetail order;
+  const _StatusHeader({required this.order});
+  @override
+  Widget build(BuildContext context) {
+    final tone = statusTone(order.status);
+    return SurfaceCard(
+      child: Row(children: [
+        TintIcon(
+            order.status == OrderStatus.completed
+                ? Icons.verified_rounded
+                : (tone == Tone.danger
+                    ? Icons.cancel_rounded
+                    : Icons.receipt_long_rounded),
+            tone: tone),
+        const SizedBox(width: 12),
+        Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(Ar.orderNumberLabel, style: WexText.caption),
+            LtrText(order.orderNumber,
+                style:
+                    const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+          ]),
+        ),
+        StatusPill(
+            order.statusLabel.isEmpty
+                ? statusText(order.status)
+                : order.statusLabel,
+            tone: tone),
       ]),
     );
   }
