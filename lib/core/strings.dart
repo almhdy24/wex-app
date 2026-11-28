@@ -268,4 +268,5 @@ abstract final class Ar {
   static const confirmPickupBank = 'تأكيد الطلب · تحويل بنكي';
   static const confirmDeliveryBank = 'تأكيد الطلب والتوصيل · تحويل بنكي';
   static const close = 'إغلاق';
+  static const workingHoursLabel = 'ساعات العمل';
 }

@@ -7,6 +7,10 @@ import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
 import '../../core/strings.dart';
 import '../../core/utils/launchers.dart';
+import '../../core/design/tones.dart';
+import '../../core/design/typography.dart';
+import '../../core/widgets/illustrations.dart';
+import '../../core/widgets/wex_kit.dart';
 import '../../core/widgets/wex_widgets.dart';
 
 const _appVersion = '1.0.6';
@@ -22,15 +26,17 @@ class AccountScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(Sp.page),
         children: [
+          // The one hero moment: user card on the brand gradient.
           if (auth.isAuthenticated)
-            WexCard(
+            HeroCard(
                 child: Row(children: [
               Container(
                   width: 52,
                   height: 52,
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                      gradient: WexColors.gradBrand, shape: BoxShape.circle),
+                  decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle),
                   child: Text(
                       auth.user!.name.isNotEmpty
                           ? auth.user!.name.characters.first
@@ -45,25 +51,59 @@ class AccountScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                     Text(auth.user!.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                            fontWeight: FontWeight.w800, fontSize: 16)),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 17)),
                     const SizedBox(height: 2),
                     LtrText(auth.user!.email,
                         style: const TextStyle(
-                            color: WexColors.textSecondary, fontSize: 13)),
+                            color: WexColors.onDarkMuted, fontSize: 13)),
                   ])),
             ]))
           else
-            WexCard(
+            SurfaceCard(
+                soft: true,
                 child: Column(children: [
-              const Icon(Icons.account_circle_outlined,
-                  size: 44, color: WexColors.primary),
-              const SizedBox(height: 10),
-              const Text(Ar.signedOut,
-                  style: TextStyle(color: WexColors.textSecondary)),
-              const SizedBox(height: 14),
-              WexButton(Ar.signIn, onPressed: () => context.push('/login')),
-            ])),
+                  const WexIllustration(IllustrationKind.box, size: 96),
+                  const SizedBox(height: 8),
+                  const Text(Ar.signedOut,
+                      style: TextStyle(color: WexColors.textSecondary)),
+                  const SizedBox(height: 14),
+                  WexButton(Ar.signIn, onPressed: () => context.push('/login')),
+                ])),
+          if (shop?.whatsapp.isNotEmpty ?? false) ...[
+            const SizedBox(height: Sp.x6),
+            SurfaceCard(
+              onTap: () => openWhatsApp(shop.whatsapp),
+              child: Row(children: [
+                const TintIcon(Icons.chat_rounded, tone: Tone.success),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(Ar.contactUs,
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, fontSize: 15)),
+                        if (shop!.workingHours.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                                '${Ar.workingHoursLabel}: ${shop.workingHours}',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: WexText.caption),
+                          ),
+                      ]),
+                ),
+                const StatusPill(Ar.whatsappLabel,
+                    tone: Tone.success, dot: false),
+              ]),
+            ),
+          ],
           const SizedBox(height: Sp.x7),
           _group(Ar.sectionOrders, [
             _item(Icons.receipt_long_rounded, Ar.sectionOrders,
@@ -76,10 +116,6 @@ class AccountScreen extends ConsumerWidget {
           ]),
           const SizedBox(height: Sp.x6),
           _group(Ar.sectionSupport, [
-            if (shop?.whatsapp.isNotEmpty ?? false)
-              _item(Icons.chat_rounded, Ar.contactUs,
-                  () => openWhatsApp(shop!.whatsapp),
-                  tint: WexColors.success),
             _item(
                 Icons.help_outline_rounded, Ar.faq, () => context.push('/faq')),
             _item(Icons.description_outlined, Ar.terms,
@@ -91,7 +127,7 @@ class AccountScreen extends ConsumerWidget {
           ]),
           if (auth.isAuthenticated) ...[
             const SizedBox(height: Sp.x6),
-            WexCard(
+            SurfaceCard(
                 padding: EdgeInsets.zero,
                 child: _item(Icons.logout_rounded, Ar.logout,
                     () => ref.read(authControllerProvider.notifier).logout(),
@@ -113,7 +149,7 @@ class AccountScreen extends ConsumerWidget {
     for (var i = 0; i < items.length; i++) {
       children.add(items[i]);
       if (i < items.length - 1) {
-        children.add(const Divider(height: 1, indent: 54));
+        children.add(const Divider(height: 1, indent: 70));
       }
     }
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -124,16 +160,20 @@ class AccountScreen extends ConsumerWidget {
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
                   color: WexColors.textSecondary))),
-      WexCard(padding: EdgeInsets.zero, child: Column(children: children)),
+      SurfaceCard(padding: EdgeInsets.zero, child: Column(children: children)),
     ]);
   }
 
   Widget _item(IconData icon, String label, VoidCallback onTap,
           {Color tint = WexColors.primary}) =>
       ListTile(
-        dense: true,
-        visualDensity: const VisualDensity(vertical: -1),
-        leading: Icon(icon, color: tint, size: 22),
+        dense: false,
+        contentPadding: const EdgeInsetsDirectional.only(start: 14, end: 8),
+        leading: TintIcon(icon,
+            size: 38,
+            tone: tint == WexColors.danger
+                ? Tone.danger
+                : (tint == WexColors.success ? Tone.success : Tone.brand)),
         title: Text(label,
             style: TextStyle(
                 fontWeight: FontWeight.w600,

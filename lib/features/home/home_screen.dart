@@ -10,6 +10,7 @@ import '../../core/utils/launchers.dart';
 import '../../core/widgets/cart_button.dart';
 import '../../core/widgets/product_card.dart';
 import '../../core/widgets/shimmer.dart';
+import '../../core/widgets/wex_kit.dart';
 import '../../core/widgets/wex_widgets.dart';
 import '../../data/models/content.dart';
 import '../../data/models/shop.dart';
@@ -83,7 +84,8 @@ class HomeScreen extends ConsumerWidget {
               loading: () => SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: Sp.page),
                 sliver: SliverGrid(
-                  gridDelegate: productGridDelegate(MediaQuery.of(context).size.width),
+                  gridDelegate:
+                      productGridDelegate(MediaQuery.of(context).size.width),
                   delegate: SliverChildBuilderDelegate(
                       (_, __) => const ProductCardSkeleton(),
                       childCount: 4),
@@ -94,7 +96,8 @@ class HomeScreen extends ConsumerWidget {
               data: (page) => SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: Sp.page),
                 sliver: SliverGrid(
-                  gridDelegate: productGridDelegate(MediaQuery.of(context).size.width),
+                  gridDelegate:
+                      productGridDelegate(MediaQuery.of(context).size.width),
                   delegate: SliverChildBuilderDelegate(
                     (context, i) => FadeInUp(
                         index: i,
@@ -135,31 +138,32 @@ class _Hero extends StatelessWidget {
         ? slides.first.subtitle
         : Ar.heroSubtitle;
     final reduce = MediaQuery.of(context).disableAnimations;
+    final top = MediaQuery.of(context).padding.top;
     Widget loop(Widget w, double dy, int ms) => reduce
         ? w
         : w
             .animate(onPlay: (c) => c.repeat(reverse: true))
             .moveY(begin: 0, end: dy, duration: ms.ms, curve: Curves.easeInOut);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, 0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(26),
-        child: Container(
-          decoration: const BoxDecoration(gradient: WexColors.gradBrand),
-          child: Stack(
-            children: [
-              // Subtle animated glow blobs (one-off, lightweight).
-              Positioned(
-                  top: -30,
-                  right: -20,
-                  child: loop(_Blob(const Color(0x335A54E6), 140), 16, 3200)),
-              Positioned(
-                  bottom: -40,
-                  left: -30,
-                  child: loop(_Blob(const Color(0x2A6A5CF0), 170), -18, 3800)),
-              // Floating device mark
+    const bottomRadius = BorderRadius.vertical(bottom: Radius.circular(32));
+    return Column(children: [
+      Stack(clipBehavior: Clip.none, children: [
+        // Full-bleed gradient header: the one hero moment of the screen.
+        ClipRRect(
+          borderRadius: bottomRadius,
+          child: Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(gradient: WexColors.gradBrand),
+            child: Stack(children: [
               PositionedDirectional(
-                end: 18,
+                  top: -40,
+                  end: -30,
+                  child: loop(_Blob(const Color(0x14FFFFFF), 150), 14, 3200)),
+              PositionedDirectional(
+                  bottom: -50,
+                  start: -30,
+                  child: loop(_Blob(const Color(0x14FFFFFF), 170), -16, 3800)),
+              PositionedDirectional(
+                end: 20,
                 bottom: 70,
                 child: loop(
                     const Icon(Icons.laptop_mac_rounded,
@@ -168,7 +172,7 @@ class _Hero extends StatelessWidget {
                     2600),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(Sp.x8, Sp.x9, Sp.x8, Sp.x8),
+                padding: EdgeInsets.fromLTRB(Sp.x8, top + Sp.x7, Sp.x8, 56),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -183,45 +187,58 @@ class _Hero extends StatelessWidget {
                       Spacer(),
                       CartButton(color: Colors.white),
                     ]),
-                    const SizedBox(height: Sp.x5),
+                    const SizedBox(height: Sp.x6),
                     Text(title,
                         style: const TextStyle(
                             color: Colors.white,
                             fontSize: 23,
                             fontWeight: FontWeight.w800,
                             height: 1.4)),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(subtitle,
                         style: const TextStyle(
                             color: WexColors.onDarkMuted,
                             fontSize: 14,
                             height: 1.6)),
-                    const SizedBox(height: Sp.x8),
-                    GestureDetector(
-                      onTap: () => context.go('/catalog'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: Sp.x6, vertical: Sp.x6),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(Radii.pill)),
-                        child: Row(children: const [
-                          Icon(Icons.search_rounded,
-                              color: WexColors.textSecondary, size: 20),
-                          SizedBox(width: 10),
-                          Text(Ar.searchHint,
-                              style: TextStyle(color: WexColors.textSecondary)),
-                        ]),
-                      ),
-                    ),
                   ],
                 ),
               ),
-            ],
+            ]),
           ),
         ),
-      ),
-    );
+        // Search card overlapping the header's bottom edge.
+        PositionedDirectional(
+          start: Sp.page,
+          end: Sp.page,
+          bottom: -26,
+          child: GestureDetector(
+            onTap: () => context.go('/catalog'),
+            child: Container(
+              height: 52,
+              padding: const EdgeInsets.symmetric(horizontal: Sp.x7),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(Radii.pill),
+                boxShadow: const [
+                  BoxShadow(
+                      color: WexColors.shadowSoft,
+                      blurRadius: 20,
+                      offset: Offset(0, 8)),
+                ],
+              ),
+              child: Row(children: const [
+                Icon(Icons.search_rounded,
+                    color: WexColors.textSecondary, size: 22),
+                SizedBox(width: 10),
+                Text(Ar.searchHint,
+                    style: TextStyle(color: WexColors.textSecondary)),
+              ]),
+            ),
+          ),
+        ),
+      ]),
+      const SizedBox(height: 26),
+    ]);
   }
 }
 
@@ -277,26 +294,19 @@ class _CategoryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) => InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(Radii.card),
+        borderRadius: BorderRadius.circular(Radii.inner + 4),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: Sp.x8),
+          padding: const EdgeInsets.symmetric(vertical: Sp.x7),
           decoration: BoxDecoration(
               color: WexColors.white,
-              borderRadius: BorderRadius.circular(Radii.card),
+              borderRadius: BorderRadius.circular(Radii.inner + 4),
               border: Border.all(color: WexColors.border)),
           child: Column(children: [
-            Container(
-                width: 46,
-                height: 46,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                    color: WexColors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14)),
-                child: Icon(icon, color: WexColors.primary, size: 24)),
+            TintIcon(icon),
             const SizedBox(height: 8),
             Text(label,
                 style:
-                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
           ]),
         ),
       );
@@ -314,7 +324,7 @@ class _StoreInfo extends StatelessWidget {
     }
     return Padding(
       padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, 0),
-      child: WexCard(
+      child: SurfaceCard(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text(Ar.storeHeading,
               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
