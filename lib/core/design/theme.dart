@@ -1,145 +1,157 @@
 import 'package:flutter/material.dart';
-import 'colors.dart';
+import 'colors.g.dart';
 import 'spacing.dart';
+import 'typography.dart';
 
-abstract final class WexShadows {
-  static const sm = [
-    BoxShadow(color: WexColors.shadowSoft, blurRadius: 10, offset: Offset(0, 3))
-  ];
-  static const md = [
-    BoxShadow(
-        color: WexColors.shadowSoft, blurRadius: 24, offset: Offset(0, 10))
-  ];
-  static const sticky = [
-    BoxShadow(
-        color: WexColors.shadowSticky, blurRadius: 24, offset: Offset(0, -6))
-  ];
-}
+const kFontFamily = 'IBMPlexSansArabic';
 
+/// Token-driven theme. No Material 3 surface tints, no violet ripples, no card elevation.
 ThemeData buildWexTheme() {
-  const fontFamily = 'Tajawal';
-  final scheme = ColorScheme.fromSeed(
-    seedColor: WexColors.royal,
-    primary: WexColors.royal,
-    secondary: WexColors.vivid,
-    surface: WexColors.white,
+  final scheme = ColorScheme.light(
+    primary: WexColors.teal600,
+    onPrimary: WexColors.surface,
+    secondary: WexColors.teal500,
+    onSecondary: WexColors.surface,
+    surface: WexColors.surface,
+    onSurface: WexColors.ink900,
     error: WexColors.danger,
-    brightness: Brightness.light,
-  ).copyWith(surfaceTint: Colors.transparent);
+    onError: WexColors.surface,
+    outline: WexColors.line,
+    surfaceTint: Colors.transparent,
+  );
 
   final base = ThemeData(
-      useMaterial3: true,
-      fontFamily: fontFamily,
-      scaffoldBackgroundColor: WexColors.ice,
-      colorScheme: scheme);
-  const numeric = [FontFeature.tabularFigures()];
+    useMaterial3: true,
+    fontFamily: kFontFamily,
+    colorScheme: scheme,
+    scaffoldBackgroundColor: WexColors.paper,
+    splashFactory: NoSplash.splashFactory,
+    highlightColor: WexColors.sunken,
+    splashColor: Colors.transparent,
+    hoverColor: Colors.transparent,
+  );
+
+  RoundedRectangleBorder shape12() =>
+      RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.control));
 
   return base.copyWith(
-    splashFactory: InkSparkle.splashFactory,
     textTheme: base.textTheme
         .copyWith(
-          headlineSmall: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-              height: 1.35,
-              letterSpacing: -0.2),
-          titleLarge: const TextStyle(
-              fontSize: 19, fontWeight: FontWeight.w700, height: 1.4),
-          titleMedium: const TextStyle(
-              fontSize: 16, fontWeight: FontWeight.w700, height: 1.4),
-          bodyLarge: const TextStyle(
-              fontSize: 15.5, height: 1.75, fontFeatures: numeric),
-          bodyMedium: const TextStyle(
-              fontSize: 14.5, height: 1.7, fontFeatures: numeric),
-          labelLarge:
-              const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+          displayLarge: WexText.display,
+          headlineSmall: WexText.titleL,
+          titleLarge: WexText.titleL,
+          titleMedium: WexText.titleM,
+          bodyLarge: WexText.body,
+          bodyMedium: WexText.body,
+          bodySmall: WexText.bodyS,
+          labelLarge: WexText.titleM.copyWith(fontSize: 15, height: 22 / 15),
+          labelMedium: WexText.label,
         )
-        .apply(
-            fontFamily: fontFamily,
-            bodyColor: WexColors.textPrimary,
-            displayColor: WexColors.textPrimary),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: WexColors.ice,
+        .apply(fontFamily: kFontFamily, bodyColor: WexColors.ink900, displayColor: WexColors.ink900),
+    appBarTheme: AppBarTheme(
+      backgroundColor: WexColors.paper,
       surfaceTintColor: Colors.transparent,
-      foregroundColor: WexColors.textPrimary,
+      foregroundColor: WexColors.ink900,
       elevation: 0,
       scrolledUnderElevation: 0,
-      centerTitle: true,
-      titleTextStyle: TextStyle(
-          fontFamily: fontFamily,
-          fontSize: 17,
-          fontWeight: FontWeight.w700,
-          color: WexColors.textPrimary),
+      centerTitle: false,
+      titleTextStyle: WexText.titleM,
     ),
     cardTheme: CardThemeData(
-      color: WexColors.white,
+      color: WexColors.surface,
+      surfaceTintColor: Colors.transparent,
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(Radii.card),
-        side: const BorderSide(color: WexColors.border),
+        side: const BorderSide(color: WexColors.line),
       ),
     ),
-    dividerTheme: const DividerThemeData(
-        color: WexColors.border, thickness: 1, space: 24),
+    dividerTheme: const DividerThemeData(color: WexColors.line, thickness: 1, space: 1),
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: WexColors.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(Radii.sheetTop))),
+    ),
     filledButtonTheme: FilledButtonThemeData(
-      style: FilledButton.styleFrom(
-        backgroundColor: WexColors.royal,
-        foregroundColor: WexColors.white,
-        minimumSize: const Size.fromHeight(54),
-        elevation: 0,
-        textStyle: const TextStyle(
-            fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w700),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Radii.control)),
+      style: ButtonStyle(
+        minimumSize: const WidgetStatePropertyAll(Size.fromHeight(52)),
+        elevation: const WidgetStatePropertyAll(0),
+        shape: WidgetStatePropertyAll(shape12()),
+        textStyle: WidgetStatePropertyAll(WexText.titleM.copyWith(fontSize: 16, height: 24 / 16)),
+        foregroundColor: WidgetStateProperty.resolveWith((s) =>
+            s.contains(WidgetState.disabled) ? WexColors.disabled : WexColors.surface),
+        backgroundColor: WidgetStateProperty.resolveWith((s) {
+          if (s.contains(WidgetState.disabled)) return WexColors.sunken;
+          if (s.contains(WidgetState.pressed)) return WexColors.teal700;
+          return WexColors.teal600;
+        }),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
-      style: OutlinedButton.styleFrom(
-        foregroundColor: WexColors.royal,
-        minimumSize: const Size.fromHeight(50),
-        side: const BorderSide(color: WexColors.border),
-        textStyle: const TextStyle(
-            fontFamily: fontFamily, fontSize: 15, fontWeight: FontWeight.w700),
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(Radii.control)),
+      style: ButtonStyle(
+        minimumSize: const WidgetStatePropertyAll(Size.fromHeight(52)),
+        elevation: const WidgetStatePropertyAll(0),
+        shape: WidgetStatePropertyAll(shape12()),
+        side: const WidgetStatePropertyAll(BorderSide(color: WexColors.line)),
+        foregroundColor: const WidgetStatePropertyAll(WexColors.ink900),
+        textStyle: WidgetStatePropertyAll(WexText.titleM.copyWith(fontSize: 15, height: 22 / 15)),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+        foregroundColor: const WidgetStatePropertyAll(WexColors.teal600),
+        shape: WidgetStatePropertyAll(shape12()),
+        textStyle: WidgetStatePropertyAll(WexText.titleM.copyWith(fontSize: 15, height: 22 / 15)),
       ),
     ),
     chipTheme: ChipThemeData(
-      backgroundColor: WexColors.white,
-      selectedColor: WexColors.royal,
-      side: const BorderSide(color: WexColors.border),
-      labelStyle: const TextStyle(
-          fontFamily: fontFamily,
-          fontWeight: FontWeight.w600,
-          color: WexColors.textPrimary),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Radii.pill)),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      backgroundColor: WexColors.surface,
+      selectedColor: WexColors.ink900,
+      side: const BorderSide(color: WexColors.line),
+      labelStyle: WexText.body.copyWith(fontWeight: FontWeight.w500),
+      shape: const StadiumBorder(),
+      showCheckmark: false,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: WexColors.white,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: Sp.x6, vertical: Sp.x6),
-      hintStyle: const TextStyle(color: WexColors.disabled),
+      fillColor: WexColors.surface,
+      contentPadding: const EdgeInsets.symmetric(horizontal: Sp.s16, vertical: 14),
+      hintStyle: WexText.body.copyWith(color: WexColors.disabled),
+      labelStyle: WexText.bodyS,
+      errorStyle: WexText.label.copyWith(color: WexColors.danger),
       border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Radii.control),
-          borderSide: const BorderSide(color: WexColors.border)),
+          borderSide: const BorderSide(color: WexColors.line)),
       enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Radii.control),
-          borderSide: const BorderSide(color: WexColors.border)),
+          borderSide: const BorderSide(color: WexColors.line)),
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(Radii.control),
-          borderSide: const BorderSide(color: WexColors.royal, width: 1.6)),
+          borderSide: const BorderSide(color: WexColors.teal500, width: 2)),
+      errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(Radii.control),
+          borderSide: const BorderSide(color: WexColors.danger)),
+      focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(Radii.control),
+          borderSide: const BorderSide(color: WexColors.danger, width: 2)),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
-      backgroundColor: WexColors.navy,
-      contentTextStyle:
-          const TextStyle(fontFamily: fontFamily, color: Colors.white),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Radii.card)),
+      backgroundColor: WexColors.ink900,
+      contentTextStyle: WexText.body.copyWith(color: WexColors.surface),
+      shape: shape12(),
     ),
+    progressIndicatorTheme: const ProgressIndicatorThemeData(color: WexColors.teal600),
+    checkboxTheme: CheckboxThemeData(
+      fillColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? WexColors.teal600 : WexColors.surface),
+      side: const BorderSide(color: WexColors.line, width: 1.5),
+    ),
+    radioTheme: const RadioThemeData(fillColor: WidgetStatePropertyAll(WexColors.teal600)),
+    textSelectionTheme: const TextSelectionThemeData(cursorColor: WexColors.teal600),
   );
 }

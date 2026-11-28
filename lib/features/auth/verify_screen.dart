@@ -4,12 +4,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_controller.dart';
-import '../../core/design/colors.dart';
+import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/strings.dart';
 import '../../core/utils/ascii_digits.dart';
-import '../../core/widgets/wex_widgets.dart';
+import '../../core/design/typography.dart';
+import '../../ui/app_scaffold.dart';
+import '../../ui/app_top_bar.dart';
+import '../../ui/buttons.dart';
 
 class VerifyScreen extends ConsumerStatefulWidget {
   final String email;
@@ -113,20 +116,19 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
+    return AppScaffold(
+      appBar: const AppTopBar(),
       body: ListView(
-        padding: const EdgeInsets.all(Sp.x8),
+        padding: AppScaffold.listPadding(context, top: 8),
         children: [
           const SizedBox(height: 12),
           const Text(Ar.verifyTitle,
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800)),
+              style: WexText.titleL),
           const SizedBox(height: 8),
           Text(Ar.verifySentTo(widget.email),
               textAlign: TextAlign.center,
-              style:
-                  const TextStyle(color: WexColors.textSecondary, height: 1.6)),
+              style: WexText.bodyS),
           const SizedBox(height: Sp.x9),
           Directionality(
             textDirection: TextDirection.ltr,
@@ -143,8 +145,7 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
                       textAlign: TextAlign.center,
                       keyboardType: TextInputType.number,
                       maxLength: 1,
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.w800),
+                      style: WexText.titleL,
                       decoration: const InputDecoration(
                           counterText: '', contentPadding: EdgeInsets.zero),
                       onChanged: (v) => _onChanged(i, v),
@@ -171,13 +172,13 @@ class _VerifyScreenState extends ConsumerState<VerifyScreen> {
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: WexColors.danger))),
           const SizedBox(height: Sp.x7),
-          WexButton(Ar.confirmLogin,
+          PrimaryButton(Ar.confirmLogin,
               loading: _busy, onPressed: _busy ? null : _submit),
           const SizedBox(height: Sp.x6),
           Center(
             child: _resendIn > 0
                 ? Text(Ar.resendCountdown(_resendIn),
-                    style: const TextStyle(color: WexColors.textSecondary))
+                    style: WexText.bodyS)
                 : TextButton(onPressed: _resend, child: const Text(Ar.resend)),
           ),
         ],

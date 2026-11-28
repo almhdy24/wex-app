@@ -1,7 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../design/colors.dart';
+import '../design/colors.g.dart';
+import '../../ui/icons.dart';
 
 /// Registry of mounted cart icons (the visible one is the animation target).
 abstract final class CartTargets {
@@ -40,6 +41,9 @@ void flyToCart(BuildContext source) {
     builder: (_) => _Fly(start: start, end: end, onDone: () => entry.remove()),
   );
   overlay.insert(entry);
+  Future.delayed(const Duration(milliseconds: 1500), () {
+    if (entry.mounted) entry.remove();
+  });
 }
 
 class _Fly extends StatefulWidget {
@@ -52,7 +56,7 @@ class _Fly extends StatefulWidget {
 
 class _FlyState extends State<_Fly> with SingleTickerProviderStateMixin {
   late final AnimationController _c =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 650))
+      AnimationController(vsync: this, duration: const Duration(milliseconds: 450))
         ..addStatusListener((s) { if (s == AnimationStatus.completed) widget.onDone(); })
         ..forward();
   @override
@@ -76,16 +80,14 @@ class _FlyState extends State<_Fly> with SingleTickerProviderStateMixin {
             final size = 40 - 22 * t;
             return Stack(children: [
               Positioned(
-                left: p.dx - size / 2, top: p.dy - size / 2,
-                child: Opacity(
-                  opacity: 1 - 0.35 * t,
-                  child: Container(
-                    width: size, height: size, alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      gradient: WexColors.gradBrand, shape: BoxShape.circle,
-                      boxShadow: [BoxShadow(color: Color(0x553E4EE8), blurRadius: 10)]),
-                    child: Icon(Icons.add_rounded, color: Colors.white, size: size * 0.6),
-                  ),
+                left: p.dx - size / 2,
+                top: p.dy - size / 2,
+                child: Container(
+                  width: size,
+                  height: size,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(color: WexColors.teal600, shape: BoxShape.circle),
+                  child: Icon(LucideIcons.plus, color: WexColors.surface, size: size * 0.6),
                 ),
               ),
             ]);

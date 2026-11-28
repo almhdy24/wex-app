@@ -12,6 +12,7 @@ class ProductQuery {
   final int? maxPriceSdg;
   final bool? featured;
   final bool? inStock;
+  final bool? dealsOnly;
   final String? sort; // price_asc|price_desc|newest
   final int page;
   final int perPage;
@@ -26,6 +27,7 @@ class ProductQuery {
     this.maxPriceSdg,
     this.featured,
     this.inStock,
+    this.dealsOnly,
     this.sort,
     this.page = 1,
     this.perPage = 12,
@@ -41,6 +43,7 @@ class ProductQuery {
         if (maxPriceSdg != null) 'max_price_sdg': maxPriceSdg,
         if (featured != null) 'featured': featured! ? 1 : 0,
         if (inStock != null) 'in_stock': inStock! ? 1 : 0,
+        if (dealsOnly == true) 'deal': 1,
         if (sort != null) 'sort': sort,
         'page': page,
         'per_page': perPage,
@@ -68,6 +71,7 @@ class ProductQuery {
         maxPriceSdg: clearFilters ? null : (maxPriceSdg ?? this.maxPriceSdg),
         featured: featured,
         inStock: inStock,
+        dealsOnly: dealsOnly,
         sort: sort ?? this.sort,
         page: page ?? this.page,
         perPage: perPage,

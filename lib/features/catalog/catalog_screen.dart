@@ -1,99 +1,67 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../core/strings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/design/colors.dart';
-import '../../core/design/spacing.dart';
-import '../../core/widgets/product_card.dart';
-import '../../core/widgets/cart_button.dart';
-import '../../core/widgets/shimmer.dart';
-import '../../core/widgets/wex_widgets.dart';
 import '../../app/providers.dart';
+import '../../core/design/colors.g.dart';
+import '../../core/design/spacing.dart';
+import '../../core/design/typography.dart';
+import '../../core/format/plural.dart';
 import '../../data/repositories/product_repository.dart';
+import '../../ui/app_scaffold.dart';
+import '../../ui/app_sheet.dart';
+import '../../ui/app_top_bar.dart';
+import '../../ui/buttons.dart';
+import '../../ui/cart_action.dart';
+import '../../ui/gradients.dart';
+import '../../ui/icons.dart';
+import '../../ui/product_card.dart';
+import '../../ui/skeleton.dart';
+import '../../ui/states.dart';
+import '../promotions/promo_inline.dart';
 import 'catalog_controller.dart';
 
 const _types = [
-  (value: null, label: Ar.filterAll),
-  (value: 'laptop', label: Ar.filterLaptops),
-  (value: 'phone', label: Ar.filterPhones),
-  (value: 'accessory', label: Ar.filterAccessories),
+  (value: null, label: 'الكل'),
+  (value: 'laptop', label: 'لابتوبات'),
+  (value: 'phone', label: 'هواتف'),
+  (value: 'accessory', label: 'ملحقات'),
 ];
 
 const _sorts = [
-  (value: 'newest', label: Ar.sortNewest),
-  (value: 'price_asc', label: Ar.sortPriceAsc),
-  (value: 'price_desc', label: Ar.sortPriceDesc),
+  (value: 'newest', label: 'الأحدث'),
+  (value: 'price_asc', label: 'السعر من الأقل'),
+  (value: 'price_desc', label: 'السعر من الأعلى'),
+];
+
+const _conditions = [
+  (value: null, label: 'الكل'),
+  (value: 'new', label: 'جديد'),
+  (value: 'used_imported', label: 'مستعمل مستورد'),
+  (value: 'refurbished', label: 'مجدّد'),
 ];
 
 class CatalogScreen extends ConsumerStatefulWidget {
   final String? initialType;
   final String? initialSearch;
-  const CatalogScreen({super.key, this.initialType, this.initialSearch});
+  final bool autofocusSearch;
+  const CatalogScreen({super.key, this.initialType, this.initialSearch, this.autofocusSearch = false});
   @override
   ConsumerState<CatalogScreen> createState() => _CatalogScreenState();
 }
 
-String _sortLabel(String? v) => _sorts
-    .firstWhere((s) => s.value == (v ?? 'newest'), orElse: () => _sorts.first)
-    .label;
-
-void _openSortSheet(
-    BuildContext context, String current, void Function(String) onPick) {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: WexColors.white,
-    shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
-    builder: (ctx) => SafeArea(
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        const SizedBox(height: 12),
-        Container(
-            width: 40,
-            height: 4,
-            decoration: BoxDecoration(
-                color: WexColors.border,
-                borderRadius: BorderRadius.circular(2))),
-        const SizedBox(height: 8),
-        const Padding(
-            padding: EdgeInsets.all(Sp.x6),
-            child: Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Text(Ar.sortBy,
-                    style:
-                        TextStyle(fontWeight: FontWeight.w800, fontSize: 16)))),
-        for (final s in _sorts)
-          ListTile(
-            title: Text(s.label,
-                style: const TextStyle(fontWeight: FontWeight.w600)),
-            trailing: current == s.value
-                ? const Icon(Icons.check_rounded, color: WexColors.primary)
-                : null,
-            onTap: () {
-              onPick(s.value);
-              Navigator.pop(ctx);
-            },
-          ),
-        const SizedBox(height: 8),
-      ]),
-    ),
-  );
-}
-
 class _CatalogScreenState extends ConsumerState<CatalogScreen> {
-  late final ProductQuery _initial = ProductQuery(
-      type: widget.initialType, search: widget.initialSearch, sort: 'newest');
+  late final ProductQuery _initial = ProductQuery(type: widget.initialType, search: widget.initialSearch);
+  final _scroll = ScrollController();
   final _searchCtrl = TextEditingController();
-  final _scrollCtrl = ScrollController();
   Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     _searchCtrl.text = widget.initialSearch ?? '';
-    _scrollCtrl.addListener(() {
-      if (_scrollCtrl.position.pixels >
-          _scrollCtrl.position.maxScrollExtent - 400) {
+    _scroll.addListener(() {
+      if (_scroll.position.pixels > _scroll.position.maxScrollExtent - 600) {
         ref.read(catalogControllerProvider(_initial).notifier).loadMore();
       }
     });
@@ -102,194 +70,317 @@ class _CatalogScreenState extends ConsumerState<CatalogScreen> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _scroll.dispose();
     _searchCtrl.dispose();
-    _scrollCtrl.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged(String v) {
-    _debounce?.cancel();
-    _debounce = Timer(
-        const Duration(milliseconds: 300),
-        () => ref
-            .read(catalogControllerProvider(_initial).notifier)
-            .setSearch(v.trim()));
-  }
+  int _activeFilters(ProductQuery q) =>
+      [q.brand, q.condition, q.minPriceSdg, q.maxPriceSdg].where((e) => e != null).length;
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(catalogControllerProvider(_initial));
     final ctrl = ref.read(catalogControllerProvider(_initial).notifier);
+    final q = state.query;
+    final active = _activeFilters(q);
 
-    return Scaffold(
-      appBar:
-          AppBar(title: const Text(Ar.navStore), actions: const [CartButton()]),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x3, Sp.page, 0),
+    return AppScaffold(
+      appBar: const AppTopBar(title: 'المتجر', showBack: false, actions: [CartAction()]),
+      body: Column(children: [
+        // Sticky header: search, category chips, count + sort + filter.
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+          child: SizedBox(
+            height: 48,
             child: TextField(
               controller: _searchCtrl,
-              textDirection: TextDirection.rtl,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: Ar.searchHint,
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchCtrl.text.isEmpty
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () {
-                          _searchCtrl.clear();
-                          ctrl.setSearch('');
-                          setState(() {});
-                        },
-                      ),
+              autofocus: widget.autofocusSearch,
+              textInputAction: TextInputAction.search,
+              onChanged: (v) {
+                _debounce?.cancel();
+                _debounce = Timer(const Duration(milliseconds: 400), () => ctrl.setSearch(v.trim()));
+              },
+              decoration: const InputDecoration(
+                hintText: 'ابحث عن لابتوب أو ماركة',
+                prefixIcon: Icon(LucideIcons.search, size: 20, color: WexColors.muted),
+                contentPadding: EdgeInsets.symmetric(vertical: 0),
               ),
             ),
           ),
-          SizedBox(
-            height: 48,
-            child: ListView(
+        ),
+        SizedBox(
+          height: 44,
+          child: EdgeFade(
+            child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: Sp.page, vertical: Sp.x3),
-              children: [
-                for (final t in _types)
-                  Padding(
-                    padding: const EdgeInsetsDirectional.only(end: Sp.x3),
-                    child: ChoiceChip(
-                      label: Text(t.label),
-                      selected: state.query.type == t.value,
-                      onSelected: (_) => ctrl.setType(t.value),
-                      selectedColor: WexColors.royal,
-                      labelStyle: TextStyle(
-                          color: state.query.type == t.value
-                              ? Colors.white
-                              : WexColors.navy,
-                          fontWeight: FontWeight.w700),
-                    ),
-                  ),
-              ],
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _types.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (_, i) {
+                final t = _types[i];
+                final selected = q.type == t.value;
+                return ChoiceChip(
+                  label: Text(t.label),
+                  selected: selected,
+                  labelStyle: WexText.body.copyWith(
+                      color: selected ? WexColors.surface : WexColors.ink900, fontWeight: FontWeight.w500),
+                  onSelected: (_) => ctrl.setType(t.value),
+                );
+              },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x3, Sp.page, Sp.x3),
-            child: Row(
-              children: [
-                if (!state.loading && state.total > 0)
-                  Text(Ar.results(state.total),
-                      style: const TextStyle(
-                          color: WexColors.textSecondary, fontSize: 13)),
-                const Spacer(),
-                InkWell(
-                  onTap: () => _openSortSheet(
-                      context, state.query.sort ?? 'newest', ctrl.setSort),
-                  borderRadius: BorderRadius.circular(Radii.pill),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                    decoration: BoxDecoration(
-                        color: WexColors.white,
-                        borderRadius: BorderRadius.circular(Radii.pill),
-                        border: Border.all(color: WexColors.border)),
-                    child: Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.sort_rounded,
-                          size: 16, color: WexColors.primary),
-                      const SizedBox(width: 6),
-                      Text(_sortLabel(state.query.sort),
-                          style: const TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w700)),
-                      const Icon(Icons.keyboard_arrow_down_rounded,
-                          size: 18, color: WexColors.textSecondary),
-                    ]),
-                  ),
-                ),
-              ],
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: Row(children: [
+            Expanded(child: Text(state.loading ? ' ' : resultsLabel(state.total), style: WexText.bodyS)),
+            SizedBox(
+              height: 44,
+              child: TextButton.icon(
+                onPressed: () => _openSort(q.sort ?? 'newest', ctrl.setSort),
+                icon: const Icon(LucideIcons.arrowUpDown, size: 18),
+                label: const Text('ترتيب'),
+              ),
             ),
-          ),
-          Expanded(child: _body(state, ctrl)),
+            SizedBox(
+              height: 44,
+              child: TextButton.icon(
+                onPressed: () => _openFilters(q, ctrl),
+                icon: const Icon(LucideIcons.slidersHorizontal, size: 18),
+                label: Text(active == 0 ? 'تصفية' : 'تصفية ($active)'),
+              ),
+            ),
+          ]),
+        ),
+        const Divider(),
+        Expanded(child: _results(state, ctrl)),
+      ]),
+    );
+  }
+
+  Widget _results(CatalogState state, CatalogController ctrl) {
+    if (state.loading) {
+      return SkeletonScope(
+        child: ListView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: AppScaffold.listPadding(context, top: 12),
+          children: [for (var i = 0; i < 3; i++) const _SkeletonRow()],
+        ),
+      );
+    }
+    if (state.error != null && state.items.isEmpty) {
+      return ErrorState(onRetry: ctrl.refresh);
+    }
+    if (state.items.isEmpty) {
+      return EmptyState(
+        icon: LucideIcons.searchX,
+        title: 'لا توجد نتائج مطابقة',
+        body: 'جرّب كلمة أخرى أو أزل بعض عوامل التصفية.',
+        actionLabel: _activeFilters(state.query) > 0 ? 'إزالة التصفية' : null,
+        onAction: ctrl.clearFilters,
+      );
+    }
+    final rows = productRows(
+      state.items,
+      (p) => ProductCard(product: p, onTap: () => context.push('/products/${p.slug}')),
+    );
+    // A promo card spans both columns after every 3rd row (every 6th slot).
+    final children = <Widget>[];
+    for (var i = 0; i < rows.length; i++) {
+      children.add(rows[i]);
+      if ((i + 1) % 3 == 0) children.add(const PromoInline(placement: 'store_inline'));
+    }
+    return RefreshIndicator(
+      color: WexColors.teal600,
+      onRefresh: ctrl.refresh,
+      child: ListView(
+        controller: _scroll,
+        padding: AppScaffold.listPadding(context, top: 12),
+        children: [
+          ...children,
+          if (state.loadingMore) const SkeletonScope(child: _SkeletonRow()),
         ],
       ),
     );
   }
 
-  Widget _body(CatalogState state, CatalogController ctrl) {
-    if (state.loading) {
-      return GridView.builder(
-        padding: const EdgeInsets.all(Sp.page),
-        gridDelegate: productGridDelegate(MediaQuery.of(context).size.width),
-        itemCount: 6,
-        itemBuilder: (_, __) => const ProductCardSkeleton(),
-      );
-    }
-    if (state.error != null && state.items.isEmpty) {
-      return _Message(
-          icon: Icons.wifi_off, text: state.error!, onRetry: ctrl.refresh);
-    }
-    if (state.items.isEmpty) {
-      return const _Message(icon: Icons.search_off, text: Ar.noResults);
-    }
-    final width = MediaQuery.of(context).size.width;
-    final whatsapp = ref.watch(shopProvider).valueOrNull?.whatsapp ?? '';
-    return RefreshIndicator(
-      onRefresh: ctrl.refresh,
-      child: CustomScrollView(
-        controller: _scrollCtrl,
-        slivers: [
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x3, Sp.page, 0),
-            sliver: SliverGrid(
-              gridDelegate: productGridDelegate(width),
-              delegate: SliverChildBuilderDelegate(
-                (context, i) {
-                  final p = state.items[i];
-                  return FadeInUp(
-                    index: i,
-                    child: ProductCard(product: p, onTap: () => context.push('/products/${p.slug}')),
-                  );
-                },
-                childCount: state.items.length,
-              ),
+  void _openSort(String current, void Function(String?) onPick) {
+    showAppSheet<void>(
+      context,
+      title: 'ترتيب النتائج',
+      builder: (ctx) => ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.only(bottom: 16),
+        children: [
+          for (final s in _sorts)
+            ListTile(
+              title: Text(s.label, style: WexText.body),
+              trailing: s.value == current ? const Icon(LucideIcons.check, size: 20, color: WexColors.teal600) : null,
+              onTap: () {
+                Navigator.of(ctx).pop();
+                onPick(s.value);
+              },
             ),
-          ),
-          if (state.hasMore)
-            const SliverToBoxAdapter(
-              child: Padding(padding: EdgeInsets.all(20), child: Center(child: CircularProgressIndicator())),
-            ),
-          // Few results must never look like a dead-empty screen.
-          if (!state.hasMore && state.items.length <= 2)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x8, Sp.page, 0),
-                child: WexHelpCard(whatsapp: whatsapp),
-              ),
-            ),
-          const SliverToBoxAdapter(child: SizedBox(height: Sp.x10)),
         ],
       ),
+    );
+  }
+
+  void _openFilters(ProductQuery q, CatalogController ctrl) {
+    showAppSheet<void>(
+      context,
+      title: 'تصفية النتائج',
+      builder: (ctx) => _FilterSheet(initial: q, onApply: (brand, cond, min, max) {
+        Navigator.of(ctx).pop();
+        ctrl.setFilters(brand: brand, condition: cond, minPriceSdg: min, maxPriceSdg: max);
+      }),
     );
   }
 }
 
-class _Message extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  final Future<void> Function()? onRetry;
-  const _Message({required this.icon, required this.text, this.onRetry});
+class _SkeletonRow extends StatelessWidget {
+  const _SkeletonRow();
   @override
-  Widget build(BuildContext context) => Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 40, color: WexColors.disabled),
-            const SizedBox(height: 12),
-            Text(text, style: const TextStyle(color: WexColors.textSecondary)),
-            if (onRetry != null) ...[
-              const SizedBox(height: 12),
-              OutlinedButton(onPressed: onRetry, child: const Text(Ar.retry)),
-            ],
-          ],
-        ),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Row(children: const [
+          Expanded(child: _SkeletonCard()),
+          SizedBox(width: 12),
+          Expanded(child: _SkeletonCard()),
+        ]),
       );
+}
+
+class _SkeletonCard extends StatelessWidget {
+  const _SkeletonCard();
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: WexColors.surface,
+          borderRadius: BorderRadius.circular(Radii.card),
+          border: Border.all(color: WexColors.line),
+        ),
+        child: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          AspectRatio(aspectRatio: 4 / 3, child: SkeletonBox(height: double.infinity)),
+          SizedBox(height: 12),
+          SkeletonBox(height: 12, width: 60),
+          SizedBox(height: 8),
+          SkeletonBox(height: 16, width: 120),
+          SizedBox(height: 16),
+          SkeletonBox(height: 18, width: 90),
+          SizedBox(height: 12),
+          SkeletonBox(height: 40, width: 40),
+        ]),
+      );
+}
+
+class _FilterSheet extends ConsumerStatefulWidget {
+  final ProductQuery initial;
+  final void Function(String? brand, String? condition, int? min, int? max) onApply;
+  const _FilterSheet({required this.initial, required this.onApply});
+  @override
+  ConsumerState<_FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends ConsumerState<_FilterSheet> {
+  String? _brand;
+  String? _condition;
+  late final _min = TextEditingController(text: widget.initial.minPriceSdg?.toString() ?? '');
+  late final _max = TextEditingController(text: widget.initial.maxPriceSdg?.toString() ?? '');
+
+  @override
+  void initState() {
+    super.initState();
+    _brand = widget.initial.brand;
+    _condition = widget.initial.condition;
+  }
+
+  @override
+  void dispose() {
+    _min.dispose();
+    _max.dispose();
+    super.dispose();
+  }
+
+  int? _num(TextEditingController c) {
+    final digits = c.text.replaceAll(RegExp(r'[^0-9]'), '');
+    return digits.isEmpty ? null : int.tryParse(digits);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final brands = ref.watch(brandsProvider).valueOrNull ?? const [];
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('الحالة', style: WexText.titleM),
+          const SizedBox(height: 8),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final c in _conditions)
+              ChoiceChip(
+                label: Text(c.label),
+                selected: _condition == c.value,
+                labelStyle: WexText.body.copyWith(color: _condition == c.value ? WexColors.surface : WexColors.ink900),
+                onSelected: (_) => setState(() => _condition = c.value),
+              ),
+          ]),
+          if (brands.isNotEmpty) ...[
+            const SizedBox(height: 24),
+            const Text('الماركة', style: WexText.titleM),
+            const SizedBox(height: 8),
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              ChoiceChip(
+                label: const Text('الكل'),
+                selected: _brand == null,
+                labelStyle: WexText.body.copyWith(color: _brand == null ? WexColors.surface : WexColors.ink900),
+                onSelected: (_) => setState(() => _brand = null),
+              ),
+              for (final b in brands)
+                ChoiceChip(
+                  label: Text(b.name, textDirection: TextDirection.ltr),
+                  selected: _brand == b.slug,
+                  labelStyle: WexText.body.copyWith(color: _brand == b.slug ? WexColors.surface : WexColors.ink900),
+                  onSelected: (_) => setState(() => _brand = b.slug),
+                ),
+            ]),
+          ],
+          const SizedBox(height: 24),
+          const Text('السعر (ج.س)', style: WexText.titleM),
+          const SizedBox(height: 8),
+          Row(children: [
+            Expanded(
+              child: TextField(
+                controller: _min,
+                keyboardType: TextInputType.number,
+                textDirection: TextDirection.ltr,
+                decoration: const InputDecoration(hintText: 'من'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: TextField(
+                controller: _max,
+                keyboardType: TextInputType.number,
+                textDirection: TextDirection.ltr,
+                decoration: const InputDecoration(hintText: 'إلى'),
+              ),
+            ),
+          ]),
+          const SizedBox(height: 24),
+          Row(children: [
+            Expanded(child: SecondaryButton('إزالة الكل', onPressed: () => widget.onApply(null, null, null, null))),
+            const SizedBox(width: 12),
+            Expanded(
+                flex: 2,
+                child: PrimaryButton('عرض النتائج',
+                    onPressed: () => widget.onApply(_brand, _condition, _num(_min), _num(_max)))),
+          ]),
+        ]),
+      ),
+    );
+  }
 }

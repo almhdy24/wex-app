@@ -1,39 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
-import '../../core/design/colors.dart';
+import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
-import '../../core/strings.dart';
+import '../../core/design/typography.dart';
+import '../../core/format/store_status.dart';
+import '../../core/utils/arabic_duration.dart';
 import '../../core/utils/launchers.dart';
-import '../../core/widgets/cart_button.dart';
-import '../../core/widgets/product_card.dart';
-import '../../core/widgets/shimmer.dart';
-import '../../core/widgets/wex_kit.dart';
-import '../../core/widgets/wex_widgets.dart';
-import '../../data/models/content.dart';
+import '../../data/models/product.dart';
 import '../../data/models/shop.dart';
 import '../../data/repositories/product_repository.dart';
+import '../../ui/app_scaffold.dart';
+import '../../ui/brand_logo.dart';
+import '../../ui/buttons.dart';
+import '../../ui/cart_action.dart';
+import '../../ui/icons.dart';
+import '../../ui/product_card.dart';
+import '../../ui/section_header.dart';
+import '../../ui/skeleton.dart';
+import '../../ui/states.dart';
+import '../../ui/tag.dart';
+import '../promotions/promo_carousel.dart';
+import '../promotions/promo_actions.dart';
 
-final heroSlidesProvider = FutureProvider.autoDispose(
-    (ref) => ref.read(contentRepositoryProvider).heroSlides());
-final featuredProvider = FutureProvider.autoDispose((ref) => ref
-    .read(productRepositoryProvider)
-    .list(const ProductQuery(sort: 'newest', perPage: 8)));
-
-const _categories = [
-  (type: 'laptop', label: Ar.catLaptops, icon: Icons.laptop_mac_rounded),
-  (type: 'phone', label: Ar.catPhones, icon: Icons.smartphone_rounded),
-  (type: 'accessory', label: Ar.catAccessories, icon: Icons.headphones_rounded),
-];
-
-const _trust = [
-  (icon: Icons.verified_rounded, text: Ar.trustImported),
-  (icon: Icons.lock_clock_rounded, text: Ar.trustLock),
-  (icon: Icons.store_rounded, text: Ar.trustPickup),
-  (icon: Icons.local_shipping_rounded, text: Ar.trustDelivery),
-];
+final featuredProvider = FutureProvider.autoDispose(
+    (ref) => ref.read(productRepositoryProvider).list(const ProductQuery(sort: 'newest', perPage: 8)));
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -41,362 +33,329 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final shop = ref.watch(shopProvider).valueOrNull;
-    final slides =
-        ref.watch(heroSlidesProvider).valueOrNull ?? const <HeroSlide>[];
     final featured = ref.watch(featuredProvider);
+    final deals = ref.watch(dealsProvider).valueOrNull ?? const <ProductListItem>[];
 
-    return Scaffold(
+    return AppScaffold(
       body: RefreshIndicator(
+        color: WexColors.teal600,
         onRefresh: () async {
           ref.invalidate(shopProvider);
-          ref.invalidate(heroSlidesProvider);
           ref.invalidate(featuredProvider);
+          ref.invalidate(dealsProvider);
+          ref.invalidate(promotionsProvider('home_hero'));
+          ref.invalidate(promotionsProvider('home_strip'));
         },
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(child: _Hero(slides: slides)),
-            const SliverToBoxAdapter(child: _TrustRow()),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding:
-                    const EdgeInsets.fromLTRB(Sp.page, Sp.x5, Sp.page, Sp.x6),
-                child: Row(children: [
-                  for (final c in _categories)
-                    Expanded(
-                        child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: _CategoryTile(
-                          label: c.label,
-                          icon: c.icon,
-                          onTap: () => context.go('/catalog?type=${c.type}')),
-                    )),
-                ]),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(Sp.page, 0, Sp.page, Sp.x5),
-                child: WexSectionHeader(Ar.sectionNewest,
-                    onSeeAll: () => context.go('/catalog')),
-              ),
-            ),
-            featured.when(
-              loading: () => SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: Sp.page),
-                sliver: SliverGrid(
-                  gridDelegate:
-                      productGridDelegate(MediaQuery.of(context).size.width),
-                  delegate: SliverChildBuilderDelegate(
-                      (_, __) => const ProductCardSkeleton(),
-                      childCount: 4),
+        child: SafeArea(
+          bottom: false,
+          child: ListView(
+            padding: AppScaffold.listPadding(context, horizontal: 0, extra: 32),
+            children: [
+              // Top bar
+              const SizedBox(
+                height: 56,
+                child: Padding(
+                  padding: EdgeInsetsDirectional.only(start: 16, end: 4),
+                  child: Row(children: [Expanded(child: Align(alignment: AlignmentDirectional.centerStart, child: BrandLockup())), CartAction()]),
                 ),
               ),
-              error: (_, __) =>
-                  const SliverToBoxAdapter(child: SizedBox.shrink()),
-              data: (page) => SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: Sp.page),
-                sliver: SliverGrid(
-                  gridDelegate:
-                      productGridDelegate(MediaQuery.of(context).size.width),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, i) => FadeInUp(
-                        index: i,
-                        child: ProductCard(
-                            product: page.items[i],
-                            onTap: () => context
-                                .push('/products/${page.items[i].slug}'))),
-                    childCount: page.items.length,
+              // Search
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                child: Hero(
+                  tag: 'search-field',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(Radii.control),
+                      onTap: () => context.go('/catalog?focus=1'),
+                      child: Container(
+                        height: 48,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: WexColors.surface,
+                          borderRadius: BorderRadius.circular(Radii.control),
+                          border: Border.all(color: WexColors.line),
+                        ),
+                        child: const Row(children: [
+                          Icon(LucideIcons.search, size: 20, color: WexColors.muted),
+                          SizedBox(width: 12),
+                          Expanded(child: Text('ابحث عن لابتوب أو ماركة', maxLines: 1, overflow: TextOverflow.ellipsis, style: WexText.body)),
+                        ]),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
-            // "Can't find it?" WhatsApp card (always useful; shown prominently when catalogue is small)
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, 0),
-                child: WexHelpCard(whatsapp: shop?.whatsapp ?? ''),
+              const _Strip(),
+              const PromoCarousel(),
+              const SizedBox(height: 24),
+              // Categories
+              const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: Text('تسوّق حسب الفئة', style: WexText.titleM)),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(children: [
+                  _CategoryCell(LucideIcons.laptop, 'حواسيب', () => context.go('/catalog?type=laptop')),
+                  const SizedBox(width: 12),
+                  _CategoryCell(LucideIcons.smartphone, 'هواتف', () => context.go('/catalog?type=phone')),
+                  const SizedBox(width: 12),
+                  _CategoryCell(LucideIcons.headphones, 'ملحقات', () => context.go('/catalog?type=accessory')),
+                ]),
               ),
-            ),
-            SliverToBoxAdapter(child: _StoreInfo(shop: shop)),
-            const SliverToBoxAdapter(child: SizedBox(height: Sp.x9)),
-          ],
+              const SizedBox(height: 24),
+              _TrustRow(lockHours: shop?.lockHours ?? 4),
+              const SizedBox(height: 24),
+              // Latest
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: SectionHeader('أحدث الأجهزة', onSeeAll: () => context.go('/catalog')),
+              ),
+              const SizedBox(height: 4),
+              featured.when(
+                loading: () => const SkeletonScope(child: _RailSkeleton()),
+                error: (_, __) => ErrorState(message: 'تعذّر تحميل الأجهزة.', onRetry: () => ref.invalidate(featuredProvider)),
+                data: (page) => page.items.isEmpty
+                    ? const EmptyState(icon: LucideIcons.packageOpen, title: 'لا توجد أجهزة معروضة الآن', body: 'تابعنا قريبًا، نضيف أجهزة جديدة باستمرار.')
+                    : _Rail(items: page.items),
+              ),
+              if (deals.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                const Padding(padding: EdgeInsets.symmetric(horizontal: 16), child: SectionHeader('عروض مميزة')),
+                const SizedBox(height: 4),
+                _Rail(items: deals),
+              ],
+              const SizedBox(height: 24),
+              if (shop != null && shop.whatsapp.isNotEmpty) _HelpRow(whatsapp: shop.whatsapp),
+              if (shop != null) ...[const SizedBox(height: 24), _StoreCard(shop: shop)],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _Hero extends StatelessWidget {
-  final List<HeroSlide> slides;
-  const _Hero({required this.slides});
+/// home_strip announcement (36px). Hidden when no active promo.
+class _Strip extends ConsumerWidget {
+  const _Strip();
   @override
-  Widget build(BuildContext context) {
-    final title = slides.isNotEmpty && slides.first.title.isNotEmpty
-        ? slides.first.title
-        : Ar.heroTitle;
-    final subtitle = slides.isNotEmpty && slides.first.subtitle.isNotEmpty
-        ? slides.first.subtitle
-        : Ar.heroSubtitle;
-    final reduce = MediaQuery.of(context).disableAnimations;
-    final top = MediaQuery.of(context).padding.top;
-    Widget loop(Widget w, double dy, int ms) => reduce
-        ? w
-        : w
-            .animate(onPlay: (c) => c.repeat(reverse: true))
-            .moveY(begin: 0, end: dy, duration: ms.ms, curve: Curves.easeInOut);
-    const bottomRadius = BorderRadius.vertical(bottom: Radius.circular(32));
-    return Column(children: [
-      Stack(clipBehavior: Clip.none, children: [
-        // Full-bleed gradient header: the one hero moment of the screen.
-        ClipRRect(
-          borderRadius: bottomRadius,
-          child: Container(
-            width: double.infinity,
-            decoration: const BoxDecoration(gradient: WexColors.gradBrand),
-            child: Stack(children: [
-              PositionedDirectional(
-                  top: -40,
-                  end: -30,
-                  child: loop(_Blob(const Color(0x14FFFFFF), 150), 14, 3200)),
-              PositionedDirectional(
-                  bottom: -50,
-                  start: -30,
-                  child: loop(_Blob(const Color(0x14FFFFFF), 170), -16, 3800)),
-              PositionedDirectional(
-                end: 20,
-                bottom: 70,
-                child: loop(
-                    const Icon(Icons.laptop_mac_rounded,
-                        size: 78, color: Color(0x26FFFFFF)),
-                    -8,
-                    2600),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(Sp.x8, top + Sp.x7, Sp.x8, 56),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: const [
-                      Icon(Icons.bolt_rounded, color: Colors.white, size: 20),
-                      SizedBox(width: 6),
-                      Text(Ar.appName,
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800)),
-                      Spacer(),
-                      CartButton(color: Colors.white),
-                    ]),
-                    const SizedBox(height: Sp.x6),
-                    Text(title,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 23,
-                            fontWeight: FontWeight.w800,
-                            height: 1.4)),
-                    const SizedBox(height: 6),
-                    Text(subtitle,
-                        style: const TextStyle(
-                            color: WexColors.onDarkMuted,
-                            fontSize: 14,
-                            height: 1.6)),
-                  ],
-                ),
-              ),
-            ]),
-          ),
-        ),
-        // Search card overlapping the header's bottom edge.
-        PositionedDirectional(
-          start: Sp.page,
-          end: Sp.page,
-          bottom: -26,
-          child: GestureDetector(
-            onTap: () => context.go('/catalog'),
-            child: Container(
-              height: 52,
-              padding: const EdgeInsets.symmetric(horizontal: Sp.x7),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(Radii.pill),
-                boxShadow: const [
-                  BoxShadow(
-                      color: WexColors.shadowSoft,
-                      blurRadius: 20,
-                      offset: Offset(0, 8)),
-                ],
-              ),
-              child: Row(children: const [
-                Icon(Icons.search_rounded,
-                    color: WexColors.textSecondary, size: 22),
-                SizedBox(width: 10),
-                Text(Ar.searchHint,
-                    style: TextStyle(color: WexColors.textSecondary)),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final list = ref.watch(promotionsProvider('home_strip')).valueOrNull ?? const [];
+    if (list.isEmpty) return const SizedBox.shrink();
+    final p = list.first;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Material(
+        color: WexColors.sun50,
+        borderRadius: BorderRadius.circular(Radii.control),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(Radii.control),
+          onTap: () => handlePromoTap(context, ref, p),
+          child: SizedBox(
+            height: 36,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(children: [
+                Expanded(child: Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: WexText.bodyS.copyWith(color: WexColors.sun700, fontWeight: FontWeight.w500))),
               ]),
             ),
           ),
         ),
-      ]),
-      const SizedBox(height: 26),
-    ]);
+      ),
+    );
   }
 }
 
-class _Blob extends StatelessWidget {
-  final Color color;
-  final double size;
-  const _Blob(this.color, this.size);
+class _CategoryCell extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  const _CategoryCell(this.icon, this.label, this.onTap);
   @override
-  Widget build(BuildContext context) => Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle));
+  Widget build(BuildContext context) => Expanded(
+        child: Semantics(
+          button: true,
+          label: label,
+          child: Material(
+            color: WexColors.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.card), side: const BorderSide(color: WexColors.line)),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(Radii.card),
+              onTap: onTap,
+              child: Container(
+                constraints: const BoxConstraints(minHeight: 88),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(icon, size: 28, color: WexColors.ink900),
+                  const SizedBox(height: 8),
+                  Text(label, style: WexText.body.copyWith(fontWeight: FontWeight.w600)),
+                ]),
+              ),
+            ),
+          ),
+        ),
+      );
 }
 
 class _TrustRow extends StatelessWidget {
-  const _TrustRow();
-  @override
-  Widget build(BuildContext context) => SizedBox(
-        height: 44,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
-          padding:
-              const EdgeInsets.symmetric(horizontal: Sp.page, vertical: Sp.x5),
-          children: [
-            for (final t in _trust)
-              Container(
-                margin: const EdgeInsetsDirectional.only(end: Sp.x3),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                decoration: BoxDecoration(
-                    color: WexColors.white,
-                    borderRadius: BorderRadius.circular(Radii.pill),
-                    border: Border.all(color: WexColors.border)),
-                child: Row(children: [
-                  Icon(t.icon, size: 15, color: WexColors.primary),
-                  const SizedBox(width: 6),
-                  Text(t.text,
-                      style: const TextStyle(
-                          fontSize: 12.5, fontWeight: FontWeight.w600)),
-                ]),
-              ),
-          ],
-        ),
-      );
-}
-
-class _CategoryTile extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-  const _CategoryTile(
-      {required this.label, required this.icon, required this.onTap});
-  @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(Radii.inner + 4),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: Sp.x7),
-          decoration: BoxDecoration(
-              color: WexColors.white,
-              borderRadius: BorderRadius.circular(Radii.inner + 4),
-              border: Border.all(color: WexColors.border)),
-          child: Column(children: [
-            TintIcon(icon),
-            const SizedBox(height: 8),
-            Text(label,
-                style:
-                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-          ]),
-        ),
-      );
-}
-
-class _StoreInfo extends StatelessWidget {
-  final Shop? shop;
-  const _StoreInfo({required this.shop});
+  final int lockHours;
+  const _TrustRow({required this.lockHours});
   @override
   Widget build(BuildContext context) {
-    final s = shop;
-    if (s == null ||
-        (s.address.isEmpty && s.whatsapp.isEmpty && s.phone.isEmpty)) {
-      return const SizedBox.shrink();
-    }
+    final cells = [
+      (LucideIcons.badgeCheck, 'أجهزة مستوردة'),
+      (LucideIcons.lock, 'تثبيت السعر ${formatHoursAr(lockHours)}'),
+      (LucideIcons.truck, 'استلام من المحل أو توصيل حسب المنطقة'),
+    ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, 0),
-      child: SurfaceCard(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: WexColors.surface,
+          borderRadius: BorderRadius.circular(Radii.card),
+          border: Border.all(color: WexColors.line),
+        ),
+        child: IntrinsicHeight(
+          child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            for (var i = 0; i < cells.length; i++) ...[
+              if (i > 0) const VerticalDivider(width: 1),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                  child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                    Icon(cells[i].$1, size: 22, color: WexColors.teal600),
+                    const SizedBox(height: 8),
+                    Text(cells[i].$2, textAlign: TextAlign.center, style: WexText.label.copyWith(color: WexColors.ink900)),
+                  ]),
+                ),
+              ),
+            ],
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+/// Horizontal rail: 168px cards, snap scrolling, equal heights.
+class _Rail extends StatelessWidget {
+  final List<ProductListItem> items;
+  const _Rail({required this.items});
+  @override
+  Widget build(BuildContext context) {
+    final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6);
+    final w = MediaQuery.of(context).size.width;
+    return SizedBox(
+      height: 340 * scale,
+      child: PageView.builder(
+        padEnds: false,
+        controller: PageController(viewportFraction: (168 + 12) / w),
+        itemCount: items.length,
+        itemBuilder: (context, i) => Padding(
+          padding: EdgeInsetsDirectional.only(start: i == 0 ? 16 : 0, end: 12, top: 8, bottom: 8),
+          child: ProductCard(product: items[i], onTap: () => context.push('/products/${items[i].slug}')),
+        ),
+      ),
+    );
+  }
+}
+
+class _RailSkeleton extends StatelessWidget {
+  const _RailSkeleton();
+  @override
+  Widget build(BuildContext context) => const Padding(
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Row(children: [
+          Expanded(child: SkeletonBox(height: 300, radius: Radii.card)),
+          SizedBox(width: 12),
+          Expanded(child: SkeletonBox(height: 300, radius: Radii.card)),
+        ]),
+      );
+}
+
+class _HelpRow extends StatelessWidget {
+  final String whatsapp;
+  const _HelpRow({required this.whatsapp});
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Material(
+          color: WexColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(Radii.card), side: const BorderSide(color: WexColors.line)),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(Radii.card),
+            onTap: () => openWhatsApp(whatsapp, text: 'مرحبًا، أبحث عن جهاز.'),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(children: [
+                const Icon(LucideIcons.messageCircle, size: 28, color: WexColors.whatsapp),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text('ما لقيت اللي تبحث عنه؟', style: WexText.body.copyWith(fontWeight: FontWeight.w600)),
+                    const Text('كلّمنا على واتساب ونساعدك نلقى الجهاز المناسب.', style: WexText.bodyS),
+                  ]),
+                ),
+              ]),
+            ),
+          ),
+        ),
+      );
+}
+
+class _StoreCard extends StatelessWidget {
+  final Shop shop;
+  const _StoreCard({required this.shop});
+  @override
+  Widget build(BuildContext context) {
+    final hours = shop.storeHours;
+    final status = hours == null ? null : storeStatus(DateTime.now().toUtc(), hours);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: WexColors.surface,
+          borderRadius: BorderRadius.circular(Radii.card),
+          border: Border.all(color: WexColors.line),
+        ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text(Ar.storeHeading,
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-          if (s.address.isNotEmpty) ...[
-            const SizedBox(height: 10),
-            Row(children: [
-              const Icon(Icons.place_rounded,
-                  size: 18, color: WexColors.primary),
+          const Text('المتجر', style: WexText.titleM),
+          if (shop.address.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Icon(LucideIcons.mapPin, size: 20, color: WexColors.muted),
               const SizedBox(width: 8),
-              Expanded(child: Text(s.address))
+              Expanded(child: Text(shop.address, style: WexText.body)),
             ]),
           ],
-          if (s.workingHours.isNotEmpty) ...[
+          if (shop.workingHours.isNotEmpty) ...[
             const SizedBox(height: 8),
-            Row(children: [
-              const Icon(Icons.schedule_rounded,
-                  size: 18, color: WexColors.primary),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              const Icon(LucideIcons.clock, size: 20, color: WexColors.muted),
               const SizedBox(width: 8),
-              Expanded(child: Text(s.workingHours))
+              Expanded(child: Text(shop.workingHours, style: WexText.body)),
             ]),
           ],
-          const SizedBox(height: Sp.x6),
+          if (status != null) ...[
+            const SizedBox(height: 12),
+            AppTag(status.text, kind: status.isOpen ? TagKind.success : TagKind.neutral),
+          ],
+          const SizedBox(height: 16),
           Row(children: [
-            if (s.phone.isNotEmpty)
+            if (shop.phone.isNotEmpty) Expanded(child: SecondaryButton('اتصل', icon: LucideIcons.phone, compact: true, onPressed: () => openDialer(shop.phone))),
+            if (shop.phone.isNotEmpty && shop.whatsapp.isNotEmpty) const SizedBox(width: 8),
+            if (shop.whatsapp.isNotEmpty) Expanded(child: SecondaryButton('واتساب', icon: LucideIcons.messageCircle, compact: true, onPressed: () => openWhatsApp(shop.whatsapp))),
+            if (shop.address.isNotEmpty || shop.shopMapLink.isNotEmpty) const SizedBox(width: 8),
+            if (shop.address.isNotEmpty || shop.shopMapLink.isNotEmpty)
               Expanded(
-                  child: _ActionBtn(Icons.call_rounded, Ar.callStore,
-                      () => openDialer(s.phone))),
-            if (s.phone.isNotEmpty && s.whatsapp.isNotEmpty)
-              const SizedBox(width: 8),
-            if (s.whatsapp.isNotEmpty)
-              Expanded(
-                  child: _ActionBtn(Icons.chat_rounded, Ar.whatsappLabel,
-                      () => openWhatsApp(s.whatsapp))),
-            if ((s.address.isNotEmpty || s.shopMapLink.isNotEmpty))
-              const SizedBox(width: 8),
-            if (s.address.isNotEmpty || s.shopMapLink.isNotEmpty)
-              Expanded(
-                  child: _ActionBtn(
-                      Icons.map_rounded,
-                      Ar.mapLabel,
-                      () => s.shopMapLink.isNotEmpty
-                          ? openUrl(s.shopMapLink)
-                          : openMaps(s.address))),
+                child: SecondaryButton('الخريطة', icon: LucideIcons.map, compact: true,
+                    onPressed: () => shop.shopMapLink.isNotEmpty ? openUrl(shop.shopMapLink) : openMaps(shop.address)),
+              ),
           ]),
         ]),
       ),
     );
   }
-}
-
-class _ActionBtn extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  const _ActionBtn(this.icon, this.label, this.onTap);
-  @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-              color: WexColors.iceLight,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: WexColors.border)),
-          child: Column(children: [
-            Icon(icon, size: 20, color: WexColors.primary),
-            const SizedBox(height: 4),
-            Text(label,
-                style: const TextStyle(
-                    fontSize: 11.5, fontWeight: FontWeight.w700)),
-          ]),
-        ),
-      );
 }

@@ -1,12 +1,14 @@
+import '../../ui/brand_logo.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_controller.dart';
-import '../../core/design/colors.dart';
+import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/strings.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import '../../ui/icons.dart';
+import '../../core/design/typography.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -71,51 +73,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 alignment: AlignmentDirectional.centerStart,
                 child: IconButton(
                     onPressed: () => context.pop(),
-                    icon: const Icon(Icons.arrow_forward)),
+                    icon: const Icon(LucideIcons.arrowRight)),
               ),
               const Spacer(),
-              Center(
-                child: Container(
-                  width: 76,
-                  height: 76,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                      gradient: WexColors.gradBrand,
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: const [
-                        BoxShadow(
-                            color: Color(0x332E3BC4),
-                            blurRadius: 24,
-                            offset: Offset(0, 10))
-                      ]),
-                  child: const Icon(Icons.laptop_chromebook_rounded,
-                      color: Colors.white, size: 38),
-                )
-                    .animate()
-                    .scale(
-                        begin: const Offset(0.7, 0.7),
-                        end: const Offset(1, 1),
-                        duration: 420.ms,
-                        curve: Curves.easeOutBack)
-                    .fadeIn(),
-              ),
+              const Center(child: BrandSymbol(size: 64)),
               const SizedBox(height: Sp.x8),
               const Text(Ar.loginTitle,
                   textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                  style: WexText.titleL),
               const SizedBox(height: 8),
               const Text(Ar.loginSubtitle,
                   textAlign: TextAlign.center,
-                  style:
-                      TextStyle(color: WexColors.textSecondary, height: 1.6)),
+                  style: WexText.bodyS),
               const SizedBox(height: Sp.x10),
 
               // PRIMARY: Google
               FilledButton(
                 onPressed: _busyGoogle ? null : _google,
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: WexColors.textPrimary,
+                  backgroundColor: WexColors.surface,
+                  foregroundColor: WexColors.ink900,
                   side: const BorderSide(color: WexColors.border),
                   minimumSize: const Size.fromHeight(56),
                 ),
@@ -164,7 +141,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white))
+                              strokeWidth: 2, color: WexColors.surface))
                       : const Text(Ar.sendCode),
                 ),
               ],
@@ -214,13 +191,13 @@ class _GPainter extends CustomPainter {
           false, paint);
     }
 
-    arc(-0.35, 1.2, const Color(0xFF4285F4));
-    arc(0.85, 1.4, const Color(0xFF34A853));
-    arc(2.25, 1.4, const Color(0xFFFBBC05));
-    arc(3.65, 1.4, const Color(0xFFEA4335));
+    arc(-0.35, 1.2, WexColors.googleBlue);
+    arc(0.85, 1.4, WexColors.googleGreen);
+    arc(2.25, 1.4, WexColors.googleYellow);
+    arc(3.65, 1.4, WexColors.googleRed);
     // crossbar
     final bar = Paint()
-      ..color = const Color(0xFF4285F4)
+      ..color = WexColors.googleBlue
       ..style = PaintingStyle.fill;
     canvas.drawRect(
         Rect.fromLTWH(

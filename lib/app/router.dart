@@ -42,29 +42,6 @@ CustomTransitionPage<void> _push(GoRouterState state, Widget child) =>
       },
     );
 
-/// Bottom-sheet presentation: dimmed barrier, spring-in from the bottom.
-CustomTransitionPage<void> _sheet(GoRouterState state, Widget child) =>
-    CustomTransitionPage<void>(
-      key: state.pageKey,
-      child: child,
-      opaque: false,
-      barrierColor: Colors.black54,
-      transitionDuration: const Duration(milliseconds: 380),
-      reverseTransitionDuration: const Duration(milliseconds: 240),
-      transitionsBuilder: (context, animation, secondary, child) {
-        if (MediaQuery.of(context).disableAnimations) return child;
-        final curved = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutBack,
-            reverseCurve: Curves.easeInCubic);
-        return SlideTransition(
-          position: Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero)
-              .animate(curved),
-          child: FadeTransition(opacity: animation, child: child),
-        );
-      },
-    );
-
 final appRouter = _build();
 
 GoRouter _build() => GoRouter(
@@ -83,6 +60,7 @@ GoRouter _build() => GoRouter(
                 builder: (c, s) => CatalogScreen(
                   initialType: s.uri.queryParameters['type'],
                   initialSearch: s.uri.queryParameters['search'],
+                  autofocusSearch: s.uri.queryParameters['focus'] == '1',
                 ),
               ),
             ]),
@@ -108,7 +86,7 @@ GoRouter _build() => GoRouter(
         GoRoute(
             path: '/checkout',
             parentNavigatorKey: _rootKey,
-            pageBuilder: (c, s) => _sheet(s, const CheckoutScreen())),
+            pageBuilder: (c, s) => _push(s, const CheckoutScreen())),
         GoRoute(
           path: '/orders/:number',
           parentNavigatorKey: _rootKey,

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
-import '../../core/strings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
-import '../../core/design/colors.dart';
-import '../../core/design/spacing.dart';
+import '../../core/design/colors.g.dart';
+import '../../core/design/typography.dart';
+import '../../ui/app_scaffold.dart';
+import '../../ui/app_top_bar.dart';
+import '../../ui/buttons.dart';
+import '../../ui/icons.dart';
+import '../../ui/states.dart';
 
-final pushPrefsProvider = FutureProvider.autoDispose(
-    (ref) => ref.read(pushRepositoryProvider).preferences());
+final pushPrefsProvider = FutureProvider.autoDispose((ref) => ref.read(pushRepositoryProvider).preferences());
 
 class PushPreferencesScreen extends ConsumerWidget {
   const PushPreferencesScreen({super.key});
@@ -19,48 +22,36 @@ class PushPreferencesScreen extends ConsumerWidget {
       ref.invalidate(pushPrefsProvider);
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text(Ar.pushTitle)),
+    return AppScaffold(
+      appBar: const AppTopBar(title: 'إعدادات الإشعارات'),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (_, __) => const Center(
-            child: Text(Ar.loadError,
-                style: TextStyle(color: WexColors.textSecondary))),
+        error: (_, __) => ErrorState(onRetry: () => ref.invalidate(pushPrefsProvider)),
         data: (p) => ListView(
-          padding: const EdgeInsets.all(Sp.page),
+          padding: AppScaffold.listPadding(context, top: 4),
           children: [
-            _row(Ar.prefOrders, p.orderUpdates,
-                (v) => toggle('order_updates', v)),
-            _row(Ar.prefPayments, p.paymentUpdates,
-                (v) => toggle('payment_updates', v)),
-            _row(
-                Ar.prefPrices, p.priceAlerts, (v) => toggle('price_alerts', v)),
-            _row(Ar.prefOffers, p.announcements,
-                (v) => toggle('announcements', v)),
-            const SizedBox(height: Sp.x6),
-            OutlinedButton.icon(
-              onPressed: () async {
-                await repo.sendTest();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(const SnackBar(content: Text(Ar.testSent)));
-                }
-              },
-              icon: const Icon(Icons.send),
-              label: const Text(Ar.sendTest),
-            ),
+            _row('تحديثات الطلبات', p.orderUpdates, (v) => toggle('order_updates', v)),
+            _row('تحديثات الدفع', p.paymentUpdates, (v) => toggle('payment_updates', v)),
+            _row('تنبيهات الأسعار', p.priceAlerts, (v) => toggle('price_alerts', v)),
+            _row('العروض والإعلانات', p.announcements, (v) => toggle('announcements', v)),
+            const SizedBox(height: 16),
+            SecondaryButton('إرسال إشعار تجريبي', icon: LucideIcons.send, onPressed: () async {
+              await repo.sendTest();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال إشعار تجريبي')));
+              }
+            }),
           ],
         ),
       ),
     );
   }
 
-  Widget _row(String label, bool value, ValueChanged<bool> onChanged) =>
-      SwitchListTile(
+  Widget _row(String label, bool value, ValueChanged<bool> onChanged) => SwitchListTile(
         contentPadding: EdgeInsets.zero,
-        title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(label, style: WexText.body.copyWith(fontWeight: FontWeight.w500)),
         value: value,
-        activeThumbColor: WexColors.royal,
+        activeThumbColor: WexColors.teal600,
         onChanged: onChanged,
       );
 }
