@@ -45,10 +45,10 @@ class AccountScreen extends ConsumerWidget {
               Expanded(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   Text(auth.user!.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: WexText.titleM),
-                  Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Align(
-                      alignment: AlignmentDirectional.centerStart,
+                  Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Directionality(
+                      textDirection: TextDirection.ltr,
                       child: Text(auth.user!.email, maxLines: 1, overflow: TextOverflow.ellipsis, style: WexText.bodyS),
                     ),
                   ),

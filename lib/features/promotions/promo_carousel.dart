@@ -81,7 +81,7 @@ class _PromoCarouselState extends ConsumerState<PromoCarousel> with WidgetsBindi
         return Column(children: [
           RepaintBoundary(
             child: SizedBox(
-              height: 172,
+              height: promoHeight(context),
               child: Listener(
                 onPointerDown: (_) => _touching = true,
                 onPointerUp: (_) => _touching = false,

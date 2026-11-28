@@ -160,12 +160,13 @@ class _Header extends StatelessWidget {
         ],
         Row(children: [
           Expanded(
-            child: Directionality(
-              textDirection: TextDirection.ltr,
-              child: Align(
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
                 alignment: AlignmentDirectional.centerStart,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
+                child: Directionality(
+                  textDirection: TextDirection.ltr,
                   child: Text(order.orderNumber, maxLines: 1, softWrap: false, style: WexText.titleM.copyWith(fontFeatures: const [FontFeature.tabularFigures()])),
                 ),
               ),
@@ -304,9 +305,12 @@ class _Accounts extends StatelessWidget {
             Text(a.accountName, style: WexText.bodyS),
             Row(children: [
               Expanded(
-                child: Directionality(
-                  textDirection: TextDirection.ltr,
-                  child: Text(a.accountNumber, style: WexText.numeric.copyWith(fontSize: 16)),
+                child: Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Text(a.accountNumber, style: WexText.numeric.copyWith(fontSize: 16)),
+                  ),
                 ),
               ),
               SizedBox(

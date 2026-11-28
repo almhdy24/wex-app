@@ -132,7 +132,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
                   child: EdgeFade(
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
                       itemCount: OrderFilter.values.length,
                       separatorBuilder: (_, __) => const SizedBox(width: 8),
                       itemBuilder: (_, i) {
@@ -211,13 +211,13 @@ class _OrderCard extends ConsumerWidget {
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Row(children: [
                 Expanded(
-                  child: Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Align(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
                       alignment: AlignmentDirectional.centerStart,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: AlignmentDirectional.centerStart,
+                      child: Directionality(
+                        textDirection: TextDirection.ltr,
                         child: Text(order.orderNumber, maxLines: 1, softWrap: false, style: WexText.numeric),
                       ),
                     ),

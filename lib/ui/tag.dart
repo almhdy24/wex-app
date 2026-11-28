@@ -22,9 +22,9 @@ class AppTag extends StatelessWidget {
       TagKind.neutral => (WexColors.surface, WexColors.ink900, WexColors.line),
     };
     return Container(
+      // No `alignment`: it would stretch the tag to the full available width.
       constraints: BoxConstraints(minHeight: dense ? 22 : 28),
-      padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10, vertical: dense ? 2 : 4),
-      alignment: Alignment.center,
+      padding: EdgeInsets.symmetric(horizontal: dense ? 8 : 10, vertical: dense ? 3 : 6),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(Radii.tag),
@@ -57,8 +57,7 @@ class StatusPill extends StatelessWidget {
     };
     return Container(
       constraints: const BoxConstraints(minHeight: 28),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(Radii.tag)),
       child: Text(label, maxLines: 1, softWrap: false, style: WexText.label.copyWith(color: fg, fontWeight: FontWeight.w600)),
     );

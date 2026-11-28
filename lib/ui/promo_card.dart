@@ -10,6 +10,10 @@ import '../core/format/dates.dart';
 import '../data/models/promotion.dart';
 import 'gradients.dart';
 
+/// Banner height scales with the text scale (172 at 1.0, up to 1.4x) so large fonts never overflow.
+double promoHeight(BuildContext context, [double base = 172]) =>
+    base * MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.4);
+
 /// Banner: 172px (2:1 at 360), radius 20, padding 20. Themes: ink | teal | sun | paper.
 /// Layouts: text | image (scrim on the text side) | split (text 60% / image 40%).
 class PromoCard extends ConsumerStatefulWidget {
@@ -121,7 +125,7 @@ class _PromoCardState extends ConsumerState<PromoCard> {
         child: InkWell(
           onTap: widget.onTap,
           child: SizedBox(
-            height: widget.height,
+            height: promoHeight(context, widget.height),
             child: Stack(children: [
               if (p.theme == PromoTheme.ink) const Positioned.fill(child: DecoratedBox(decoration: BoxDecoration(gradient: Gradients.hero))),
               if (hasImage && p.layout == PromoLayout.image) ...[

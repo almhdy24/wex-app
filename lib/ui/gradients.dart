@@ -19,7 +19,7 @@ class EdgeFade extends StatelessWidget {
         blendMode: BlendMode.dstIn,
         shaderCallback: (r) => LinearGradient(
           colors: [WexColors.surface.withValues(alpha: 0), WexColors.surface, WexColors.surface, WexColors.surface.withValues(alpha: 0)],
-          stops: [0, 0.04, 0.96, 1],
+          stops: const [0, 0.03, 0.97, 1],
         ).createShader(r),
         child: child,
       );
