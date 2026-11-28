@@ -261,7 +261,7 @@ class _ExpiredBanner extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(color: WexColors.dangerBg, borderRadius: BorderRadius.circular(Radii.card)),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('انتهت مهلة تثبيت السعر لهذا الطلب.', style: WexText.body.copyWith(color: WexColors.danger, fontWeight: FontWeight.w600)),
+          Text('انتهت مهلة تثبيت السعر لهذا الطلب.', style: WexText.body.copyWith(color: WexColors.dangerText, fontWeight: FontWeight.w600)),
           const SizedBox(height: 12),
           SecondaryButton('أعد الطلب بالسعر الحالي', onPressed: onReorder),
         ]),
@@ -282,7 +282,7 @@ class _Note extends StatelessWidget {
             color: good ? WexColors.successBg : WexColors.teal50,
             borderRadius: BorderRadius.circular(Radii.card),
           ),
-          child: Text(text, style: WexText.body.copyWith(color: good ? WexColors.success : WexColors.teal700)),
+          child: Text(text, style: WexText.body.copyWith(color: good ? WexColors.successText : WexColors.teal700)),
         ),
       );
 }

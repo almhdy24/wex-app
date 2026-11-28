@@ -1,2 +1,6 @@
 # path-substring|rule|reason
 lib/core/utils/idempotency.dart|flutter-hex|0xFFFFFFFF is a 32-bit hash mask, not a colour
+src/pages/store/CatalogPage.module.css|css-gradient|functional scroll-edge mask for the category chips (not decoration)
+src/components/compare/CompareTray.module.css|css-physical|centered with left:50% + translateX(-50%): direction independent
+src/components/common/Popover.module.css|css-physical|centered with left:50% + translateX(-50%): direction independent
+src/components/common/Toast.module.css|css-physical|centered with left:50% + translateX(-50%): direction independent

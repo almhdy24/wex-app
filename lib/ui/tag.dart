@@ -16,8 +16,8 @@ class AppTag extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, fg, border) = switch (kind) {
       TagKind.sun => (WexColors.sun50, WexColors.sun700, WexColors.sun100),
-      TagKind.success => (WexColors.successBg, WexColors.success, WexColors.successBg),
-      TagKind.danger => (WexColors.dangerBg, WexColors.danger, WexColors.dangerBg),
+      TagKind.success => (WexColors.successBg, WexColors.successText, WexColors.successBg),
+      TagKind.danger => (WexColors.dangerBg, WexColors.dangerText, WexColors.dangerBg),
       TagKind.teal => (WexColors.teal50, WexColors.teal700, WexColors.teal100),
       TagKind.neutral => (WexColors.surface, WexColors.ink900, WexColors.line),
     };
@@ -51,8 +51,8 @@ class StatusPill extends StatelessWidget {
       StatusKind.pending => (WexColors.sun50, WexColors.sun700),
       StatusKind.review => (WexColors.teal50, WexColors.teal700),
       StatusKind.confirmed => (WexColors.teal50, WexColors.teal700),
-      StatusKind.done => (WexColors.successBg, WexColors.success),
-      StatusKind.bad => (WexColors.dangerBg, WexColors.danger),
+      StatusKind.done => (WexColors.successBg, WexColors.successText),
+      StatusKind.bad => (WexColors.dangerBg, WexColors.dangerText),
       StatusKind.neutral => (WexColors.sunken, WexColors.muted),
     };
     return Container(

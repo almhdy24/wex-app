@@ -31,6 +31,8 @@ abstract final class WexColors {
   static const googleGreen = Color(0xFF34A853);
   static const googleYellow = Color(0xFFFBBC05);
   static const googleRed = Color(0xFFEA4335);
+  static const dangerText = Color(0xFFB83232);
+  static const successText = Color(0xFF17703D);
 
   // Legacy aliases (pre-v2 names).
   static const primary = teal600;

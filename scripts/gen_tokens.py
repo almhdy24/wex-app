@@ -49,8 +49,13 @@ if "--css" in sys.argv:
     css = [":root {"]
     for k, v in c.items():
         name = "".join("-" + ch.lower() if ch.isupper() else ch for ch in k)
-        name = name.replace("900", "-900").replace("800", "-800").replace("700", "-700").replace("600", "-600").replace("500", "-500").replace("100", "-100").replace("50", "-50") if False else name
         css.append(f"  --v2-{name}: {v};")
+    for i, sp in enumerate(tok["space"]):
+        css.append(f"  --v2-space-{i + 1}: {sp}px;")
+    for k, v in tok["radius"].items():
+        css.append(f"  --v2-radius-{''.join('-' + c.lower() if c.isupper() else c for c in k)}: {v}px;")
+    for k, v in tok["motion"].items():
+        css.append(f"  --v2-motion-{k}: {v}ms;")
     css.append(f"  --hero-gradient: linear-gradient({g['angle']}deg, {g['heroFrom']}, {g['heroTo']});")
     css.append(f"  --shadow-float: 0 -1px 0 {c['line']}, 0 -8px 24px rgba(11, 31, 42, {a});")
     css.append("}")
