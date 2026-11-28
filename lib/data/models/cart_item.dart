@@ -9,6 +9,7 @@ class CartItem {
   final String? thumbPath;
   final int quantity;
   final int maxQty; // min(10, derived from stock status)
+  final String condition; // new | used_imported | refurbished ('' if unknown)
 
   const CartItem({
     required this.productId,
@@ -18,6 +19,7 @@ class CartItem {
     this.thumbPath,
     this.quantity = 1,
     this.maxQty = 10,
+    this.condition = '',
   });
 
   String get thumbUrl => Env.assetUrl(thumbPath ?? '');
@@ -31,6 +33,7 @@ class CartItem {
         thumbPath: thumbPath,
         quantity: quantity ?? this.quantity,
         maxQty: maxQty,
+        condition: condition,
       );
 
   Map<String, dynamic> toJson() => {
@@ -41,6 +44,7 @@ class CartItem {
         'thumb': thumbPath,
         'quantity': quantity,
         'max_qty': maxQty,
+        'condition': condition,
       };
 
   factory CartItem.fromJson(Map<String, dynamic> j) => CartItem(
@@ -51,13 +55,20 @@ class CartItem {
         thumbPath: j['thumb']?.toString(),
         quantity: ((j['quantity'] ?? 1) as num).round().clamp(1, 10),
         maxQty: ((j['max_qty'] ?? 10) as num).round(),
+        condition: (j['condition'] ?? '').toString(),
       );
 
   factory CartItem.fromListItem(ProductListItem p, {int quantity = 1}) {
     final max = p.stockStatus == StockStatus.lowStock ? 2 : 10;
     return CartItem(
-      productId: p.id, slug: p.slug, name: p.name, priceSdg: p.priceSdg,
-      thumbPath: p.thumbPath ?? p.imagePath, quantity: quantity.clamp(1, max), maxQty: max,
+      productId: p.id,
+      slug: p.slug,
+      name: p.name,
+      priceSdg: p.priceSdg,
+      thumbPath: p.thumbPath ?? p.imagePath,
+      quantity: quantity.clamp(1, max),
+      maxQty: max,
+      condition: p.condition,
     );
   }
 
@@ -73,6 +84,7 @@ class CartItem {
           : null,
       quantity: quantity.clamp(1, max),
       maxQty: max,
+      condition: p.condition,
     );
   }
 }

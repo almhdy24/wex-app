@@ -259,4 +259,13 @@ abstract final class Ar {
   static const ordersEmptyTitle = 'لا طلبات بعد';
   static const ordersEmptyBody = 'اختر جهازك الأول وسنتولى الباقي.';
   static const ordersFilterEmpty = 'لا توجد طلبات في هذا التصنيف';
+
+  // Round 3 — checkout sheet
+  static const payMethod = 'وسيلة الدفع';
+  static const bankTransfer = 'تحويل بنكي';
+  static const bankTransferNote = 'ارفع إشعار التحويل بعد تأكيد الطلب';
+  static String priceLockBadge(String d) => 'تثبيت السعر $d';
+  static const confirmPickupBank = 'تأكيد الطلب · تحويل بنكي';
+  static const confirmDeliveryBank = 'تأكيد الطلب والتوصيل · تحويل بنكي';
+  static const close = 'إغلاق';
 }

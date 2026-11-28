@@ -5,13 +5,17 @@ import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../core/design/colors.dart';
 import '../../core/design/spacing.dart';
+import '../../core/design/tones.dart';
 import '../../core/design/typography.dart';
 import '../../core/strings.dart';
 import '../../core/utils/product_name.dart';
 import '../../core/widgets/price_text.dart';
 import '../../core/widgets/product_card.dart';
+import '../../core/widgets/wex_kit.dart';
 import '../../core/widgets/wex_widgets.dart';
 import '../../data/models/cart_item.dart';
+import '../../data/models/product.dart' show conditionLabel;
+import '../../core/widgets/illustrations.dart';
 import 'cart_controller.dart';
 
 class CartScreen extends ConsumerWidget {
@@ -30,8 +34,8 @@ class CartScreen extends ConsumerWidget {
     if (items.isEmpty) {
       return Scaffold(
         appBar: AppBar(title: const Text(Ar.cart)),
-        body: WexEmptyState(
-          icon: Icons.shopping_bag_outlined,
+        body: IllustratedEmpty(
+          kind: IllustrationKind.cart,
           title: Ar.cartEmpty,
           body: Ar.cartEmptyBody,
           ctaLabel: Ar.cartEmptyCta,
@@ -112,14 +116,23 @@ class _CartLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = normalizeProductName(item.name);
-    return WexCard(
-      padding: const EdgeInsets.all(Sp.x5),
+    final condText = conditionLabel(item.condition);
+    final cond = condText.isEmpty ? null : condText;
+    return SurfaceCard(
+      padding: const EdgeInsets.all(12),
       child: Row(children: [
+        // Vertical pill stepper in a tinted container, at the start side.
+        _Stepper(
+            quantity: item.quantity,
+            atMax: item.quantity >= item.maxQty,
+            onInc: onInc,
+            onDec: onDec),
+        const SizedBox(width: 12),
         ClipRRect(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(Radii.inner),
           child: SizedBox(
-            width: 78,
-            height: 78,
+            width: 76,
+            height: 76,
             child: item.thumbUrl.isEmpty
                 ? const ColoredBox(
                     color: WexColors.iceLight,
@@ -129,39 +142,37 @@ class _CartLine extends StatelessWidget {
                     imageUrl: item.thumbUrl, fit: BoxFit.cover),
           ),
         ),
-        const SizedBox(width: Sp.x6),
+        const SizedBox(width: 12),
         Expanded(
           child:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            if (t.brand.isNotEmpty)
-              Directionality(
+            Text([t.brand, t.model].where((e) => e.isNotEmpty).join(' '),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 textDirection: TextDirection.ltr,
-                child: Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(t.brand, style: WexText.caption)),
-              ),
-            LtrText(t.model, maxLines: 2, style: WexText.itemTitle),
+                textAlign: TextAlign.start,
+                style: WexText.itemTitle),
             const SizedBox(height: 6),
+            Row(children: [
+              if (cond != null) ...[
+                StatusPill(cond, tone: Tone.neutral, dot: false),
+                const SizedBox(width: 8),
+              ],
+              const Spacer(),
+              InkWell(
+                onTap: onDelete,
+                borderRadius: BorderRadius.circular(8),
+                child: const Padding(
+                  padding: EdgeInsets.all(4),
+                  child: Icon(Icons.delete_outline_rounded,
+                      color: WexColors.danger, size: 20),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 4),
             PriceText(item.lineTotal, size: 16),
           ]),
         ),
-        Column(children: [
-          InkWell(
-            onTap: onDelete,
-            borderRadius: BorderRadius.circular(8),
-            child: const Padding(
-              padding: EdgeInsets.all(4),
-              child: Icon(Icons.delete_outline_rounded,
-                  color: WexColors.danger, size: 20),
-            ),
-          ),
-          const SizedBox(height: 4),
-          _Stepper(
-              quantity: item.quantity,
-              atMax: item.quantity >= item.maxQty,
-              onInc: onInc,
-              onDec: onDec),
-        ]),
       ]),
     );
   }
@@ -178,31 +189,38 @@ class _Stepper extends StatelessWidget {
       required this.onDec});
   @override
   Widget build(BuildContext context) => Container(
+        width: 40,
         decoration: BoxDecoration(
-            border: Border.all(color: WexColors.border),
+            color: WexColors.primaryTint,
             borderRadius: BorderRadius.circular(Radii.pill)),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          _sq(Icons.remove_rounded, quantity > 1 ? onDec : null),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          _btn(Icons.add_rounded, atMax ? null : onInc),
           SizedBox(
-            width: 28,
+            height: 24,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 180),
               transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
               child: Text('$quantity',
                   key: ValueKey(quantity),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.w700)),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: WexColors.primary,
+                      fontSize: 15)),
             ),
           ),
-          _sq(Icons.add_rounded, atMax ? null : onInc),
+          _btn(Icons.remove_rounded, quantity > 1 ? onDec : null),
         ]),
       );
-  Widget _sq(IconData i, VoidCallback? onTap) => IconButton(
-        iconSize: 16,
-        visualDensity: VisualDensity.compact,
-        onPressed: onTap,
-        icon: Icon(i,
-            color: onTap == null ? WexColors.disabled : WexColors.primary),
+  Widget _btn(IconData i, VoidCallback? onTap) => SizedBox(
+        width: 40,
+        height: 40,
+        child: IconButton(
+          padding: EdgeInsets.zero,
+          icon: Icon(i, size: 20),
+          color: WexColors.primary,
+          disabledColor: WexColors.disabled,
+          onPressed: onTap,
+        ),
       );
 }
 

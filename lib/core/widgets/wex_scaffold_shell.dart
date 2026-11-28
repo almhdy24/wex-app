@@ -37,7 +37,10 @@ class WexScaffoldShell extends StatelessWidget {
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: WexColors.white,
-          border: Border(top: BorderSide(color: WexColors.border)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          boxShadow: [
+            BoxShadow(color: WexColors.shadowSticky, blurRadius: 24, offset: Offset(0, -6)),
+          ],
         ),
         child: SafeArea(
           top: false,
