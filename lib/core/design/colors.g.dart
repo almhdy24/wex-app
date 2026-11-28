@@ -27,6 +27,10 @@ abstract final class WexColors {
   static const onInkMuted = Color(0xFFB9C8CF);
   static const shadow = Color(0xFF0B1F2A);
   static const whatsapp = Color(0xFF25D366);
+  static const googleBlue = Color(0xFF4285F4);
+  static const googleGreen = Color(0xFF34A853);
+  static const googleYellow = Color(0xFFFBBC05);
+  static const googleRed = Color(0xFFEA4335);
 
   // Legacy aliases (pre-v2 names).
   static const primary = teal600;

@@ -1,0 +1,2 @@
+# path-substring|rule|reason
+lib/core/utils/idempotency.dart|flutter-hex|0xFFFFFFFF is a 32-bit hash mask, not a colour

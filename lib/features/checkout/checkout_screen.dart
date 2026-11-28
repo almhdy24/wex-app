@@ -6,20 +6,22 @@ import '../../app/providers.dart';
 import '../../core/auth/auth_controller.dart';
 import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
+import '../../core/design/typography.dart';
+import '../../core/format/money.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/strings.dart';
 import '../../core/utils/arabic_duration.dart';
 import '../../core/utils/ascii_digits.dart';
-import '../../core/utils/sudan_phone.dart';
-import '../../core/widgets/price_text.dart';
-import '../../core/design/typography.dart';
-import '../../core/utils/formatters.dart';
 import '../../core/utils/product_name.dart';
-import '../../data/models/cart_item.dart';
-import '../../core/widgets/wex_kit.dart';
-import '../../core/widgets/wex_widgets.dart';
-import '../../core/design/tones.dart';
+import '../../core/utils/sudan_phone.dart';
 import '../../data/models/catalog_meta.dart';
+import '../../ui/app_scaffold.dart';
+import '../../ui/app_top_bar.dart';
+import '../../ui/buttons.dart';
+import '../../ui/icons.dart';
+import '../../ui/money_text.dart';
+import '../../ui/states.dart';
+import '../../ui/tag.dart';
 import '../cart/cart_controller.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
@@ -36,6 +38,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _notes = TextEditingController();
   bool _busy = false;
   String? _error;
+  bool _summaryOpen = false;
+
+  @override
+  void dispose() {
+    _phone.dispose();
+    _address.dispose();
+    _notes.dispose();
+    super.dispose();
+  }
 
   Future<void> _placeOrder() async {
     if (!ref.read(authControllerProvider).isAuthenticated) {
@@ -92,462 +103,237 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final shop = ref.watch(shopProvider).valueOrNull;
     final zones = ref.watch(zonesProvider);
     final cart = ref.watch(cartControllerProvider);
-    final discountPct = shop?.appDiscountPercent ?? 3;
+    final pct = shop?.appDiscountPercent ?? 0;
     final lockHours = shop?.lockHours ?? 4;
     final subtotal = cart.fold<int>(0, (s, i) => s + i.lineTotal);
-    final discount = (subtotal * discountPct / 100).round();
-    final shippingFee = _type == 'delivery' ? (_zone?.feeSdg ?? 0) : 0;
-    final total = subtotal - discount + shippingFee;
+    final discount = (subtotal * pct / 100).round();
+    final fee = _type == 'delivery' ? (_zone?.feeSdg ?? 0) : 0;
+    final total = subtotal - discount + fee;
 
     if (shop != null && !shop.ordersEnabled) {
-      return Scaffold(
-        appBar: AppBar(title: const Text(Ar.checkout)),
-        body: WexEmptyState(
-            icon: Icons.pause_circle_outline_rounded,
-            title: Ar.ordersPausedTitle,
-            body: shop.ordersDisabledMessage.isEmpty
-                ? Ar.ordersClosed
-                : shop.ordersDisabledMessage),
+      return AppScaffold(
+        appBar: const AppTopBar(title: 'إتمام الطلب'),
+        body: EmptyState(
+          icon: LucideIcons.circlePause,
+          title: 'استقبال الطلبات متوقف مؤقتًا',
+          body: shop.ordersDisabledMessage.isEmpty ? 'نعود إليك قريبًا.' : shop.ordersDisabledMessage,
+        ),
       );
     }
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Stack(children: [
-        // Tap outside the sheet to dismiss.
-        Positioned.fill(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => context.pop(),
-          ),
+    return AppScaffold(
+      appBar: const AppTopBar(title: 'إتمام الطلب'),
+      bottomBar: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(children: [
+          const Text('الإجمالي', style: WexText.bodyS),
+          const Spacer(),
+          MoneyText.large(total),
+        ]),
+        const SizedBox(height: 12),
+        PrimaryButton(
+          _type == 'delivery' ? 'تأكيد الطلب والتوصيل' : 'تأكيد الطلب',
+          icon: LucideIcons.check,
+          loading: _busy,
+          onPressed: _busy ? null : _placeOrder,
         ),
-        NotificationListener<DraggableScrollableNotification>(
-          onNotification: (n) {
-            if (n.extent <= n.minExtent + 0.01 && !_closing) {
-              _closing = true;
-              context.pop();
-            }
-            return false;
-          },
-          child: DraggableScrollableSheet(
-            initialChildSize: 0.94,
-            minChildSize: 0.5,
-            maxChildSize: 0.94,
-            snap: true,
-            snapSizes: const [0.94],
-            builder: (context, scroll) => Container(
-              decoration: const BoxDecoration(
-                color: WexColors.ice,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Column(children: [
-                _SheetHeader(onClose: () => context.pop()),
-                Expanded(
-                  child: ListView(
-                    controller: scroll,
-                    padding: const EdgeInsets.fromLTRB(
-                        Sp.page, Sp.x3, Sp.page, Sp.page),
-                    children: [
-                      _SectionTitle(1, Ar.receiveMethod),
-                      const SizedBox(height: Sp.x5),
-                      _choice('pickup', Ar.pickup, Ar.pickupFree,
-                          Icons.store_rounded,
-                          badge: Ar.pickupFree),
-                      const SizedBox(height: Sp.x3),
-                      _choice('delivery', Ar.delivery, Ar.deliveryByArea,
-                          Icons.local_shipping_rounded),
-                      AnimatedSize(
-                        duration: const Duration(milliseconds: 260),
-                        curve: Curves.easeOut,
-                        child: _type == 'delivery'
-                            ? Padding(
-                                padding: const EdgeInsets.only(top: Sp.x6),
-                                child: Column(children: [
-                                  zones.when(
-                                    loading: () =>
-                                        const LinearProgressIndicator(),
-                                    error: (_, __) =>
-                                        const Text(Ar.zonesLoadError),
-                                    data: (list) => InputDecorator(
-                                      decoration: const InputDecoration(
-                                          labelText: Ar.deliveryArea),
-                                      child: DropdownButton<ShippingZone>(
-                                        value: _zone,
-                                        isExpanded: true,
-                                        underline: const SizedBox.shrink(),
-                                        hint: const Text(Ar.chooseArea),
-                                        items: [
-                                          for (final z in list)
-                                            DropdownMenuItem(
-                                                value: z,
-                                                child: Text(
-                                                    '${z.name} — ${z.feeSdg == 0 ? Ar.pickupFree : formatSdg(z.feeSdg)}'))
-                                        ],
-                                        onChanged: (z) =>
-                                            setState(() => _zone = z),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(height: Sp.x5),
-                                  TextField(
-                                      controller: _address,
-                                      maxLines: 2,
-                                      decoration: const InputDecoration(
-                                          labelText: Ar.deliveryAddress)),
-                                ]),
-                              )
-                            : (shop != null && shop.address.isNotEmpty
-                                ? Padding(
-                                    padding: const EdgeInsets.only(top: Sp.x6),
-                                    child: SurfaceCard(
-                                        padding: const EdgeInsets.all(Sp.x6),
-                                        child: Row(children: [
-                                          const TintIcon(Icons.place_rounded,
-                                              size: 36),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                              child: Text(shop.address,
-                                                  style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w600))),
-                                        ])),
-                                  )
-                                : const SizedBox.shrink()),
-                      ),
-                      const SizedBox(height: Sp.x9),
-                      _SectionTitle(2, Ar.payMethod),
-                      const SizedBox(height: Sp.x5),
-                      // Bank transfer is the only payment method the shop supports.
-                      _payCard(Ar.bankTransfer, Ar.bankTransferNote,
-                          Ar.priceLockBadge(formatHoursAr(lockHours))),
-                      const SizedBox(height: Sp.x9),
-                      _SectionTitle(3, Ar.contactHeading),
-                      const SizedBox(height: Sp.x8),
-                      TextField(
-                        controller: _phone,
-                        keyboardType: TextInputType.phone,
-                        textDirection: TextDirection.ltr,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'[0-9٠-٩۰-۹\s-]'))
-                        ],
-                        onChanged: (v) {
-                          final a = toAsciiDigits(v);
-                          if (a != v) {
-                            _phone.value = TextEditingValue(
-                                text: a,
-                                selection:
-                                    TextSelection.collapsed(offset: a.length));
-                          }
-                        },
-                        decoration: const InputDecoration(
-                            labelText: Ar.phoneLabel,
-                            hintText: Ar.phoneHint,
-                            floatingLabelBehavior: FloatingLabelBehavior.always,
-                            prefixIcon: Icon(Icons.phone_rounded)),
-                      ),
-                      const SizedBox(height: Sp.x5),
-                      TextField(
-                          controller: _notes,
-                          decoration: const InputDecoration(
-                              labelText: Ar.notesOptional)),
-                      if (_error != null)
-                        Padding(
-                            padding: const EdgeInsets.only(top: Sp.x5),
-                            child: Text(_error!,
-                                style:
-                                    const TextStyle(color: WexColors.danger))),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.fromLTRB(Sp.page, Sp.x6, Sp.page, Sp.x6),
-                  decoration: const BoxDecoration(
-                      color: WexColors.white,
-                      boxShadow: [
-                        BoxShadow(
-                            color: WexColors.shadowSticky,
-                            blurRadius: 24,
-                            offset: Offset(0, -6))
-                      ]),
-                  child: SafeArea(
-                      top: false,
-                      child: Column(children: [
-                        _OrderSummary(
-                          items: cart,
-                          subtotal: subtotal,
-                          discount: discount,
-                          discountPct: discountPct,
-                          shippingFee: shippingFee,
-                          delivery: _type == 'delivery',
+      ]),
+      body: ListView(
+        padding: AppScaffold.listPadding(context, top: 4),
+        children: [
+          _Title(1, 'طريقة الاستلام'),
+          const SizedBox(height: 12),
+          _Choice(selected: _type == 'pickup', icon: LucideIcons.store, title: 'استلام من المحل', note: 'مجانًا', onTap: () => setState(() => _type = 'pickup')),
+          const SizedBox(height: 8),
+          _Choice(selected: _type == 'delivery', icon: LucideIcons.truck, title: 'توصيل', note: 'حسب المنطقة', onTap: () => setState(() => _type = 'delivery')),
+          AnimatedSize(
+            duration: Motion.base,
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: _type == 'delivery'
+                ? Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Column(children: [
+                      zones.when(
+                        loading: () => const LinearProgressIndicator(),
+                        error: (_, __) => const Text('تعذّر تحميل المناطق.', style: WexText.bodyS),
+                        data: (list) => InputDecorator(
+                          decoration: const InputDecoration(labelText: 'منطقة التوصيل'),
+                          child: DropdownButton<ShippingZone>(
+                            value: _zone,
+                            isExpanded: true,
+                            underline: const SizedBox.shrink(),
+                            hint: const Text('اختر المنطقة'),
+                            items: [
+                              for (final z in list)
+                                DropdownMenuItem(value: z, child: Text('${z.name} — ${z.feeSdg == 0 ? 'مجانًا' : formatMoney(z.feeSdg)}')),
+                            ],
+                            onChanged: (z) => setState(() => _zone = z),
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Row(children: [
-                          const Text(Ar.total,
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w800, fontSize: 16)),
-                          const Spacer(),
-                          PriceText(total, size: 20)
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(controller: _address, maxLines: 2, decoration: const InputDecoration(labelText: 'عنوان التوصيل')),
+                    ]),
+                  )
+                : (shop != null && shop.address.isNotEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          const Icon(LucideIcons.mapPin, size: 20, color: WexColors.muted),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(shop.address, style: WexText.body)),
                         ]),
-                        const SizedBox(height: Sp.x5),
-                        // CTA label and icon follow the selection.
-                        WexButton(
-                            _type == 'delivery'
-                                ? Ar.confirmDeliveryBank
-                                : Ar.confirmPickupBank,
-                            icon: const Icon(Icons.account_balance_rounded,
-                                color: Colors.white, size: 20),
-                            loading: _busy,
-                            onPressed: _busy ? null : _placeOrder),
-                      ])),
-                ),
+                      )
+                    : const SizedBox(width: double.infinity)),
+          ),
+          const SizedBox(height: 24),
+          _Title(2, 'وسيلة الدفع'),
+          const SizedBox(height: 12),
+          // Bank transfer is the only payment method the shop supports.
+          _Choice(
+            selected: true,
+            icon: LucideIcons.landmark,
+            title: 'تحويل بنكي',
+            note: 'ارفع إشعار التحويل بعد تأكيد الطلب',
+            badge: 'تثبيت السعر ${formatHoursAr(lockHours)}',
+            onTap: () {},
+          ),
+          const SizedBox(height: 24),
+          _Title(3, 'التواصل'),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _phone,
+            keyboardType: TextInputType.phone,
+            textDirection: TextDirection.ltr,
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9٠-٩۰-۹\s-]'))],
+            onChanged: (v) {
+              final a = toAsciiDigits(v);
+              if (a != v) _phone.value = TextEditingValue(text: a, selection: TextSelection.collapsed(offset: a.length));
+            },
+            decoration: const InputDecoration(
+              labelText: 'رقم الهاتف (واتساب)',
+              hintText: '09XXXXXXXX',
+              floatingLabelBehavior: FloatingLabelBehavior.always,
+              prefixIcon: Icon(LucideIcons.phone, size: 20),
+            ),
+          ),
+          const SizedBox(height: 12),
+          TextField(controller: _notes, decoration: const InputDecoration(labelText: 'ملاحظات (اختياري)')),
+          if (_error != null)
+            Padding(padding: const EdgeInsets.only(top: 12), child: Text(_error!, style: WexText.body.copyWith(color: WexColors.danger))),
+          const SizedBox(height: 24),
+          // Collapsible order summary
+          InkWell(
+            onTap: () => setState(() => _summaryOpen = !_summaryOpen),
+            child: SizedBox(
+              height: 48,
+              child: Row(children: [
+                Expanded(child: Text('ملخص الطلب · ${cart.fold<int>(0, (s, i) => s + i.quantity)} منتجات', style: WexText.titleM)),
+                AnimatedRotation(turns: _summaryOpen ? 0.5 : 0, duration: Motion.base, child: const Icon(LucideIcons.chevronDown, size: 22)),
               ]),
             ),
           ),
-        ),
-      ]),
-    );
-  }
-
-  bool _closing = false;
-
-  /// The single, always-selected payment method card.
-  Widget _payCard(String title, String note, String badge) => Container(
-        padding: const EdgeInsets.all(Sp.x6),
-        decoration: BoxDecoration(
-            color: WexColors.primaryTint,
-            borderRadius: BorderRadius.circular(Radii.inner + 4),
-            border: Border.all(color: WexColors.primary, width: 1.6)),
-        child: Row(children: [
-          const TintIcon(Icons.account_balance_rounded, size: 44),
-          const SizedBox(width: Sp.x5),
-          Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 15)),
-              const SizedBox(height: 2),
-              Text(note, style: WexText.caption),
-              const SizedBox(height: 8),
-              StatusPill(badge, tone: Tone.success, dot: false),
-            ]),
+          AnimatedSize(
+            duration: Motion.base,
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: !_summaryOpen
+                ? const SizedBox(width: double.infinity)
+                : Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(color: WexColors.surface, borderRadius: BorderRadius.circular(Radii.card), border: Border.all(color: WexColors.line)),
+                    child: Column(children: [
+                      for (final i in cart)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(children: [
+                            Expanded(child: Text('${normalizeProductName(i.name).full} × ${i.quantity}', maxLines: 1, overflow: TextOverflow.ellipsis, style: WexText.bodyS)),
+                            MoneyText(i.lineTotal, style: WexText.bodyS.copyWith(color: WexColors.ink900, fontWeight: FontWeight.w600)),
+                          ]),
+                        ),
+                      const Divider(height: 20),
+                      _line('المجموع الفرعي', MoneyText(subtotal, style: WexText.bodyS.copyWith(color: WexColors.ink900, fontWeight: FontWeight.w600))),
+                      if (discount > 0)
+                        _line('خصم التطبيق ${isolate('$pct%')}', MoneyText(-discount, style: WexText.bodyS.copyWith(fontWeight: FontWeight.w600), color: WexColors.success)),
+                      if (_type == 'delivery') _line('رسوم التوصيل', MoneyText(fee, style: WexText.bodyS.copyWith(color: WexColors.ink900, fontWeight: FontWeight.w600))),
+                    ]),
+                  ),
           ),
-          const Icon(Icons.radio_button_checked_rounded,
-              color: WexColors.primary, size: 22),
-        ]),
-      );
-
-  Widget _choice(String value, String title, String note, IconData icon,
-      {String? badge}) {
-    final selected = _type == value;
-    return InkWell(
-      onTap: () {
-        HapticFeedback.selectionClick();
-        setState(() => _type = value);
-      },
-      borderRadius: BorderRadius.circular(Radii.inner + 4),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.all(Sp.x6),
-        decoration: BoxDecoration(
-            color: selected ? WexColors.primaryTint : WexColors.white,
-            borderRadius: BorderRadius.circular(Radii.inner + 4),
-            border: Border.all(
-                color: selected ? WexColors.primary : WexColors.border,
-                width: selected ? 1.6 : 1)),
-        child: Row(children: [
-          TintIcon(icon, tone: selected ? Tone.brand : Tone.neutral),
-          const SizedBox(width: Sp.x5),
-          Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 15)),
-              const SizedBox(height: 2),
-              Text(note, style: WexText.caption),
-              if (badge != null) ...[
-                const SizedBox(height: 8),
-                StatusPill(badge, tone: Tone.success, dot: false),
-              ],
-            ]),
-          ),
-          Icon(
-              selected
-                  ? Icons.radio_button_checked_rounded
-                  : Icons.radio_button_off_rounded,
-              color: selected ? WexColors.primary : WexColors.disabled,
-              size: 22),
-        ]),
+        ],
       ),
     );
   }
-}
 
-class _SheetHeader extends StatelessWidget {
-  final VoidCallback onClose;
-  const _SheetHeader({required this.onClose});
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(Sp.page, 10, 8, 4),
-        child: Column(children: [
-          Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                  color: WexColors.border,
-                  borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 6),
-          Row(children: [
-            const Expanded(
-                child: Text(Ar.orderSummary,
-                    style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.w800))),
-            IconButton(
-                onPressed: onClose,
-                icon: const Icon(Icons.close_rounded),
-                tooltip: Ar.close),
-          ]),
-        ]),
+  Widget _line(String l, Widget v) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Row(children: [Expanded(child: Text(l, style: WexText.bodyS)), v]),
       );
 }
 
-/// Numbered section heading: brand circle with the number + title.
-class _SectionTitle extends StatelessWidget {
+class _Title extends StatelessWidget {
   final int n;
-  final String title;
-  const _SectionTitle(this.n, this.title);
+  final String text;
+  const _Title(this.n, this.text);
   @override
   Widget build(BuildContext context) => Row(children: [
         Container(
-          width: 26,
-          height: 26,
+          width: 24,
+          height: 24,
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
-              color: WexColors.primary, shape: BoxShape.circle),
-          child: Text('$n',
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700)),
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: WexColors.ink900)),
+          child: Text('$n', style: WexText.numeric.copyWith(fontSize: 12)),
         ),
-        const SizedBox(width: 10),
-        Text(title,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+        const SizedBox(width: 12),
+        Text(text, style: WexText.titleM),
       ]);
 }
 
-/// Collapsible order summary above the CTA: items + subtotal / discount / delivery.
-class _OrderSummary extends StatefulWidget {
-  final List<CartItem> items;
-  final int subtotal, discount, discountPct, shippingFee;
-  final bool delivery;
-  const _OrderSummary({
-    required this.items,
-    required this.subtotal,
-    required this.discount,
-    required this.discountPct,
-    required this.shippingFee,
-    required this.delivery,
-  });
+class _Choice extends StatelessWidget {
+  final bool selected;
+  final IconData icon;
+  final String title;
+  final String note;
+  final String? badge;
+  final VoidCallback onTap;
+  const _Choice({required this.selected, required this.icon, required this.title, required this.note, this.badge, required this.onTap});
   @override
-  State<_OrderSummary> createState() => _OrderSummaryState();
-}
-
-class _OrderSummaryState extends State<_OrderSummary> {
-  bool _open = false;
-  @override
-  Widget build(BuildContext context) {
-    final count = widget.items.fold<int>(0, (s, i) => s + i.quantity);
-    return Column(children: [
-      InkWell(
-        onTap: () => setState(() => _open = !_open),
-        borderRadius: BorderRadius.circular(10),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Row(children: [
-            const Icon(Icons.receipt_long_rounded,
-                size: 18, color: WexColors.primary),
-            const SizedBox(width: 8),
-            Text('${Ar.orderSummary} · $count ${Ar.itemsWord}',
-                style: const TextStyle(fontWeight: FontWeight.w600)),
-            const Spacer(),
-            AnimatedRotation(
-              turns: _open ? 0.5 : 0,
-              duration: const Duration(milliseconds: 220),
-              child: const Icon(Icons.keyboard_arrow_down_rounded,
-                  color: WexColors.textSecondary),
+  Widget build(BuildContext context) => Semantics(
+        button: true,
+        selected: selected,
+        label: title,
+        child: AnimatedContainer(
+          duration: Motion.base,
+          curve: Curves.easeOutCubic,
+          decoration: BoxDecoration(
+            color: selected ? WexColors.teal50 : WexColors.surface,
+            borderRadius: BorderRadius.circular(Radii.card),
+            border: Border.all(color: selected ? WexColors.teal600 : WexColors.line, width: selected ? 2 : 1),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(Radii.card),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                onTap();
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(children: [
+                  Icon(icon, size: 24, color: WexColors.ink900),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(title, style: WexText.body.copyWith(fontWeight: FontWeight.w600)),
+                      Text(note, style: WexText.bodyS),
+                      if (badge != null) ...[const SizedBox(height: 8), AppTag(badge!, kind: TagKind.success)],
+                    ]),
+                  ),
+                  Icon(selected ? LucideIcons.circleCheck : LucideIcons.circle, size: 22, color: selected ? WexColors.teal600 : WexColors.disabled),
+                ]),
+              ),
             ),
-          ]),
+          ),
         ),
-      ),
-      AnimatedSize(
-        duration: const Duration(milliseconds: 240),
-        curve: Curves.easeOut,
-        alignment: Alignment.topCenter,
-        child: _open
-            ? ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 220),
-                child: SingleChildScrollView(
-                  child: Column(children: [
-                    for (final i in widget.items)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(children: [
-                          Expanded(
-                            child: Text(
-                                '${normalizeProductName(i.name).full} × ${i.quantity}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: WexText.caption),
-                          ),
-                          PriceText(i.lineTotal,
-                              size: 13,
-                              color: WexColors.textPrimary,
-                              weight: FontWeight.w700),
-                        ]),
-                      ),
-                    const Divider(height: 14),
-                    _line(
-                        Ar.subtotal,
-                        PriceText(widget.subtotal,
-                            size: 13,
-                            color: WexColors.textPrimary,
-                            weight: FontWeight.w700)),
-                    if (widget.discount > 0)
-                      _line(
-                          Ar.discountPercent(widget.discountPct),
-                          PriceText(widget.discount,
-                              size: 13,
-                              color: WexColors.success,
-                              weight: FontWeight.w800,
-                              negative: true)),
-                    if (widget.delivery)
-                      _line(
-                          Ar.deliveryFee,
-                          PriceText(widget.shippingFee,
-                              size: 13,
-                              color: WexColors.textPrimary,
-                              weight: FontWeight.w700)),
-                    const SizedBox(height: 6),
-                  ]),
-                ),
-              )
-            : const SizedBox(width: double.infinity),
-      ),
-    ]);
-  }
-
-  Widget _line(String label, Widget value) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(children: [
-          Text(label, style: WexText.caption),
-          const Spacer(),
-          value
-        ]),
       );
 }

@@ -17,8 +17,8 @@ class EdgeFade extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ShaderMask(
         blendMode: BlendMode.dstIn,
-        shaderCallback: (r) => const LinearGradient(
-          colors: [Color(0x00FFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0x00FFFFFF)],
+        shaderCallback: (r) => LinearGradient(
+          colors: [WexColors.surface.withValues(alpha: 0), WexColors.surface, WexColors.surface, WexColors.surface.withValues(alpha: 0)],
           stops: [0, 0.04, 0.96, 1],
         ).createShader(r),
         child: child,
