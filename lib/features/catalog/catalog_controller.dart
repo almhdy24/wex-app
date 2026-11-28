@@ -114,6 +114,21 @@ class CatalogController extends StateNotifier<CatalogState> {
     _load(reset: true);
   }
 
+  /// Replaces brand/condition/price exactly (nulls clear them); keeps search, type and sort.
+  void setFilters({String? brand, String? condition, int? minPriceSdg, int? maxPriceSdg}) {
+    final q = state.query;
+    state = state.copyWith(
+        query: ProductQuery(
+            search: q.search,
+            type: q.type,
+            sort: q.sort,
+            brand: brand,
+            condition: condition,
+            minPriceSdg: minPriceSdg,
+            maxPriceSdg: maxPriceSdg));
+    _load(reset: true);
+  }
+
   void clearFilters() {
     state = state.copyWith(query: state.query.copyWith(clearFilters: true));
     _load(reset: true);
