@@ -30,3 +30,22 @@ String format12hTime(DateTime utc) {
   final suffix = k.hour < 12 ? 'ص' : 'م';
   return '$h12:$mm $suffix';
 }
+
+const _monthsAr = [
+  'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+  'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+];
+
+/// "12 نوفمبر 2026 · 3:05 م" in Africa/Khartoum, Western digits, one format app-wide.
+String formatDateTimeAr(DateTime utc) {
+  final k = utc.toUtc().add(const Duration(hours: 2));
+  return '${isolate('${k.day} ${_monthsAr[k.month - 1]} ${k.year}')} · ${format12hTime(utc)}';
+}
+
+/// "3 س 20 د" / "45 د" remaining time, bidi-safe.
+String formatRemaining(int seconds) {
+  final h = seconds ~/ 3600;
+  final m = (seconds % 3600) ~/ 60;
+  if (h > 0) return isolate('$h س $m د');
+  return isolate('${m < 1 ? 1 : m} د');
+}

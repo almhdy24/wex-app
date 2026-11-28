@@ -18,6 +18,11 @@ abstract final class Radii {
   static const card = 12.0;
   static const panel = 14.0;
   static const pill = 999.0;
+
+  /// Round 3: large cards, inner blocks and the 44dp tinted icon squares.
+  static const card24 = 24.0;
+  static const inner = 16.0;
+  static const icon = 14.0;
 }
 
 abstract final class Motion {

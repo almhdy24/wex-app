@@ -35,6 +35,11 @@ abstract final class WexColors {
   static const danger = Color(0xFFDC4A46);
   static const dangerBg = Color(0xFFFCEBEA);
 
+  // Neutral pair + brand tint (10%) for selected states / icon squares.
+  static const neutral = Color(0xFF6B7090);
+  static const neutralBg = Color(0xFFF0F1F6);
+  static const primaryTint = Color(0x1A3E4EE8);
+
   // Soft neutral shadows
   static const shadowSoft = Color(0x0F131A3A);
   static const shadowSticky = Color(0x14131A3A);

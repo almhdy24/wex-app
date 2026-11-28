@@ -241,4 +241,22 @@ abstract final class Ar {
   static const completeSetup = 'أكمل جهازك';
   static const orderSummary = 'ملخص الطلب';
   static const itemsWord = 'منتجات';
+
+  static String orderWaText(String n) => 'مرحبًا، بخصوص طلبي رقم $n';
+
+  // Round 3 — orders list
+  static const ordersAll = 'الكل';
+  static const ordersProcessing = 'قيد التجهيز';
+  static const ordersActiveHero = 'طلباتك النشطة';
+  static String ordersActiveCount(int n) =>
+      n == 0 ? 'لا طلبات نشطة الآن' : (n == 1 ? 'طلب واحد قيد المتابعة' : '$n طلبات قيد المتابعة');
+  static const completeTransfer = 'أكمل التحويل';
+  static const orderContactWa = 'تواصل عبر واتساب';
+  static const orderAgain = 'اطلب مجددًا';
+  static const browseStore = 'تصفّح المتجر';
+  static String itemsChip(int n) => n == 1 ? 'قطعة واحدة' : (n == 2 ? 'قطعتان' : (n <= 10 ? '$n قطع' : '$n قطعة'));
+  static String lockLeft(String t) => 'يتبقى $t';
+  static const ordersEmptyTitle = 'لا طلبات بعد';
+  static const ordersEmptyBody = 'اختر جهازك الأول وسنتولى الباقي.';
+  static const ordersFilterEmpty = 'لا توجد طلبات في هذا التصنيف';
 }

@@ -67,6 +67,15 @@ class _Block extends StatelessWidget {
       );
 }
 
+/// Rounded shimmer placeholder block.
+class ShimmerBox extends StatelessWidget {
+  final double height;
+  final double radius;
+  const ShimmerBox({super.key, required this.height, this.radius = 12});
+  @override
+  Widget build(BuildContext context) => Shimmer(child: _Block(height: height, radius: radius));
+}
+
 class ProductCardSkeleton extends StatelessWidget {
   const ProductCardSkeleton({super.key});
   @override

@@ -137,16 +137,30 @@ class OrderListItem {
   final PaymentState paymentState;
   final int totalSdg;
   final DateTime? createdAt;
+  final String deliveryType; // pickup|delivery
+  final int itemsCount;
+  final String? firstItemName;
+  final String? firstItemImage;
+  final int secondsRemaining;
   const OrderListItem(
       {required this.orderNumber,
       required this.status,
       required this.statusLabel,
       required this.paymentState,
       required this.totalSdg,
-      this.createdAt});
+      this.createdAt,
+      this.deliveryType = '',
+      this.itemsCount = 0,
+      this.firstItemName,
+      this.firstItemImage,
+      this.secondsRemaining = 0});
   factory OrderListItem.fromJson(Map<String, dynamic> j) {
     final pay =
         (j['payment'] is Map) ? Map<String, dynamic>.from(j['payment']) : null;
+    final first = (j['first_item'] is Map)
+        ? Map<String, dynamic>.from(j['first_item'])
+        : null;
+    final img = first?['image_path']?.toString();
     return OrderListItem(
       orderNumber: (j['order_number'] ?? '').toString(),
       status: orderStatusFrom(j['status']?.toString()),
@@ -154,6 +168,12 @@ class OrderListItem {
       paymentState: paymentStateFrom(pay?['state']?.toString()),
       totalSdg: ((j['total_sdg'] ?? j['total_amount_sdg'] ?? 0) as num).round(),
       createdAt: DateTime.tryParse((j['created_at'] ?? '').toString()),
+      deliveryType: (j['delivery_type'] ?? '').toString(),
+      itemsCount: ((j['items_count'] ?? 0) as num).round(),
+      firstItemName: first?['name']?.toString(),
+      firstItemImage:
+          (img == null || img.isEmpty) ? null : Env.assetUrl(img),
+      secondsRemaining: ((j['seconds_remaining'] ?? 0) as num).round(),
     );
   }
 }
