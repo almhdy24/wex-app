@@ -15,8 +15,8 @@ abstract final class WexColors {
   // Ink / text
   static const navy = Color(0xFF0E1430); // deep midnight (dark headers)
   static const textPrimary = Color(0xFF111833);
-  static const textSecondary = Color(0xFF6A7187);
-  static const border = Color(0xFFE9EBF2);
+  static const textSecondary = Color(0xFF6B7090);
+  static const border = Color(0xFFE9EBF5);
   static const disabled = Color(0xFFADB2C2);
 
   // Surfaces / background

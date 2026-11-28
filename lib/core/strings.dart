@@ -142,7 +142,14 @@ abstract final class Ar {
   static const sortPriceAsc = 'الأقل سعرًا';
   static const sortPriceDesc = 'الأعلى سعرًا';
   static const sortBy = 'ترتيب حسب';
-  static String results(int n) => '$n نتيجة';
+  /// Arabic plural forms: 0 / نتيجة واحدة / نتيجتان / 3–10 نتائج / 11+ نتيجة.
+  static String results(int n) {
+    if (n <= 0) return 'لا توجد نتائج';
+    if (n == 1) return 'نتيجة واحدة';
+    if (n == 2) return 'نتيجتان';
+    if (n <= 10) return '$n نتائج';
+    return '$n نتيجة';
+  }
 
   // Orders list / detail
   static const ordersSignedOut = 'سجّل الدخول لعرض طلباتك';

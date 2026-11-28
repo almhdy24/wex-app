@@ -1,5 +1,6 @@
 import '../../app/env.dart';
 import '../../core/strings.dart';
+import '../../core/utils/product_name.dart';
 
 enum StockStatus { inStock, lowStock, outOfStock, unknown }
 
@@ -9,6 +10,17 @@ StockStatus _stock(String? s) => switch (s) {
       'out_of_stock' => StockStatus.outOfStock,
       _ => StockStatus.unknown,
     };
+
+Map<String, String> _specMap(dynamic raw) {
+  final out = <String, String>{};
+  if (raw is Map) {
+    raw.forEach((k, v) {
+      final value = v?.toString() ?? '';
+      if (value.isNotEmpty) out[k.toString()] = value;
+    });
+  }
+  return out;
+}
 
 /// Catalog list item (PublicProductPresenter::presentListItem).
 class ProductListItem {
@@ -23,6 +35,7 @@ class ProductListItem {
   final bool isFeatured;
   final String? thumbPath;
   final String? imagePath;
+  final Map<String, String> specs;
 
   const ProductListItem({
     required this.id,
@@ -36,7 +49,11 @@ class ProductListItem {
     this.isFeatured = false,
     this.thumbPath,
     this.imagePath,
+    this.specs = const {},
   });
+
+  /// Normalized brand/model for display (typo-fixed, title-cased).
+  ProductTitle get title => normalizeProductName(name);
 
   String get thumbUrl => Env.assetUrl(thumbPath ?? imagePath ?? '');
   bool get isOutOfStock => stockStatus == StockStatus.outOfStock;
@@ -56,6 +73,7 @@ class ProductListItem {
       isFeatured: j['is_featured'] == true,
       thumbPath: (j['thumb_url'] ?? img['thumb_path'])?.toString(),
       imagePath: (j['primary_image'] ?? img['path'])?.toString(),
+      specs: _specMap(j['specs']),
     );
   }
 }
@@ -121,6 +139,8 @@ class ProductDetail {
     this.images = const [],
     this.accessories = const [],
   });
+
+  ProductTitle get title => normalizeProductName(name);
 
   bool get isOutOfStock => stockStatus == StockStatus.outOfStock;
 
