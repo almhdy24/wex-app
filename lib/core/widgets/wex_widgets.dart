@@ -108,7 +108,7 @@ class _WexButtonState extends State<WexButton> {
             width: widget.expand ? double.infinity : null,
             height: 54,
             alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
               gradient: widget.secondary ? null : WexColors.gradBrand,
               color: widget.secondary ? Colors.white : null,

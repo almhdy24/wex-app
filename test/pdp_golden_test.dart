@@ -63,6 +63,7 @@ void main() {
       ),
     ));
     await tester.pump(const Duration(milliseconds: 400));
+    await tester.pump(const Duration(milliseconds: 400));
     await expectLater(
         find.byType(ProductDetailScreen), matchesGoldenFile('goldens/pdp.png'));
   });

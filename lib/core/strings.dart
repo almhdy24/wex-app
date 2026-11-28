@@ -228,4 +228,9 @@ abstract final class Ar {
   static String shareOrderText(String n) =>
       'طلبي من ويكس تكنولوجي — رقم الطلب: $n';
   static const nextStep = 'الخطوة التالية';
+
+  // Product details (Round 2)
+  static const inStock = 'متوفر';
+  static const priceLabel = 'السعر';
+  static const allSpecs = 'كل المواصفات';
 }
