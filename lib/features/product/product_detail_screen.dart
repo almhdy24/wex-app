@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
-import '../../core/design/colors.dart';
+import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
 import '../../core/design/typography.dart';
 import '../../core/strings.dart';

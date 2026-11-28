@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
-import '../design/colors.dart';
+import '../design/colors.g.dart';
 import '../strings.dart';
 
 /// Modern bottom nav: a soft floating bar with an animated indicator pill behind

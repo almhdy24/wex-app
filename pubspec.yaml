@@ -58,20 +58,20 @@ flutter:
   assets:
     - assets/icon/
   fonts:
-    - family: Tajawal
+    - family: IBMPlexSansArabic
       fonts:
-        - asset: assets/fonts/Tajawal-Regular.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Regular.ttf
           weight: 400
-        - asset: assets/fonts/Tajawal-Medium.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-Medium.ttf
           weight: 500
-        - asset: assets/fonts/Tajawal-Bold.ttf
+        - asset: assets/fonts/IBMPlexSansArabic-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/IBMPlexSansArabic-Bold.ttf
           weight: 700
-        - asset: assets/fonts/Tajawal-ExtraBold.ttf
-          weight: 800
 
 flutter_launcher_icons:
   android: true
   ios: false
   image_path: assets/icon/app_icon.png
-  adaptive_icon_background: "#061A55"
+  adaptive_icon_background: "#0B1F2A"
   adaptive_icon_foreground: assets/icon/app_icon.png

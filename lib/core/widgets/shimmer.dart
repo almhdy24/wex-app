@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../design/colors.dart';
+import '../design/colors.g.dart';
 import '../design/spacing.dart';
 
 /// Lightweight shimmer (no package): a moving gradient over a base color.

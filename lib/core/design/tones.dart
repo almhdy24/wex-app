@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'colors.dart';
+import 'colors.g.dart';
 
 /// Semantic tone: a foreground colour with a ~10–12% tint background.
 /// Used for every status pill, amount accent, badge and icon square so the

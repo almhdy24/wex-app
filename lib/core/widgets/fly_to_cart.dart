@@ -1,7 +1,8 @@
+import '../../ui/gradients.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../design/colors.dart';
+import '../design/colors.g.dart';
 
 /// Registry of mounted cart icons (the visible one is the animation target).
 abstract final class CartTargets {
@@ -82,7 +83,7 @@ class _FlyState extends State<_Fly> with SingleTickerProviderStateMixin {
                   child: Container(
                     width: size, height: size, alignment: Alignment.center,
                     decoration: const BoxDecoration(
-                      gradient: WexColors.gradBrand, shape: BoxShape.circle,
+                      gradient: Gradients.hero, shape: BoxShape.circle,
                       boxShadow: [BoxShadow(color: Color(0x553E4EE8), blurRadius: 10)]),
                     child: Icon(Icons.add_rounded, color: Colors.white, size: size * 0.6),
                   ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../design/colors.dart';
+import '../design/colors.g.dart';
 import '../utils/formatters.dart';
 
 /// Price: LTR-isolated amount + ج.س unit (web Price.jsx parity). Never shows AED.

@@ -4,7 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wex_app/core/design/colors.dart';
+import 'package:wex_app/core/design/colors.g.dart';
 import 'package:wex_app/core/design/theme.dart';
 import 'package:wex_app/core/strings.dart';
 import 'package:wex_app/core/widgets/product_card.dart';
@@ -35,7 +35,7 @@ void main() {
       child: MaterialApp(
         theme: buildWexTheme(), debugShowCheckedModeBanner: false,
         home: DefaultTextStyle.merge(
-          style: const TextStyle(fontFamily: 'Tajawal', color: WexColors.textPrimary),
+          style: const TextStyle(fontFamily: 'IBMPlexSansArabic', color: WexColors.textPrimary),
           child: Directionality(
             textDirection: TextDirection.rtl,
             child: Scaffold(

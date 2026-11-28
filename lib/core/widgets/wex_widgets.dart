@@ -1,6 +1,7 @@
+import '../../ui/gradients.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../design/colors.dart';
+import '../design/colors.g.dart';
 import '../design/spacing.dart';
 import '../strings.dart';
 import '../design/typography.dart';
@@ -110,7 +111,7 @@ class _WexButtonState extends State<WexButton> {
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              gradient: widget.secondary ? null : WexColors.gradBrand,
+              gradient: widget.secondary ? null : Gradients.hero,
               color: widget.secondary ? Colors.white : null,
               borderRadius: BorderRadius.circular(16),
               border:

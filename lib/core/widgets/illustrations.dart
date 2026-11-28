@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../design/colors.dart';
+import '../design/colors.g.dart';
 
 /// Original, code-drawn illustrations (simple shapes in brand colours).
 enum IllustrationKind { box, cart, search }

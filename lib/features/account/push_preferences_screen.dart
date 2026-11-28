@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../core/strings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/providers.dart';
-import '../../core/design/colors.dart';
+import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
 
 final pushPrefsProvider = FutureProvider.autoDispose(

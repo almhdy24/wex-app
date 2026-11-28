@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/strings.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../core/design/colors.dart';
+import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
 import '../../core/widgets/product_card.dart';
 import '../../core/widgets/cart_button.dart';

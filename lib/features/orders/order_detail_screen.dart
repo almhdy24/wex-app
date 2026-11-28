@@ -1,3 +1,4 @@
+import '../../ui/gradients.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/strings.dart';
@@ -9,7 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../app/providers.dart';
 import '../../core/auth/auth_controller.dart';
-import '../../core/design/colors.dart';
+import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
 import '../../core/design/tones.dart';
 import '../../core/design/typography.dart';
@@ -209,7 +210,7 @@ class _LockCardState extends ConsumerState<_LockCard> {
     return Container(
       padding: const EdgeInsets.all(Sp.x8),
       decoration: BoxDecoration(
-          gradient: WexColors.gradNavy,
+          gradient: Gradients.hero,
           borderRadius: BorderRadius.circular(Radii.panel)),
       child: Column(
         children: [

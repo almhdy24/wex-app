@@ -1,9 +1,10 @@
+import '../../ui/gradients.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
-import '../../core/design/colors.dart';
+import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
 import '../../core/strings.dart';
 import '../../core/utils/launchers.dart';
@@ -152,7 +153,7 @@ class _Hero extends StatelessWidget {
           borderRadius: bottomRadius,
           child: Container(
             width: double.infinity,
-            decoration: const BoxDecoration(gradient: WexColors.gradBrand),
+            decoration: const BoxDecoration(gradient: Gradients.hero),
             child: Stack(children: [
               PositionedDirectional(
                   top: -40,

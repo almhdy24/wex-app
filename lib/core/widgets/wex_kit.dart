@@ -1,5 +1,6 @@
+import '../../ui/gradients.dart';
 import 'package:flutter/material.dart';
-import '../design/colors.dart';
+import '../design/colors.g.dart';
 import '../design/spacing.dart';
 import '../design/tones.dart';
 
@@ -139,7 +140,7 @@ class HeroCard extends StatelessWidget {
     final r = radius ?? BorderRadius.circular(Radii.card24);
     return Container(
       decoration: BoxDecoration(
-        gradient: WexColors.gradBrand,
+        gradient: Gradients.hero,
         borderRadius: r,
         boxShadow: const [
           BoxShadow(

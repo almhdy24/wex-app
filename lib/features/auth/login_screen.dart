@@ -1,8 +1,9 @@
+import '../../ui/gradients.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_controller.dart';
-import '../../core/design/colors.dart';
+import '../../core/design/colors.g.dart';
 import '../../core/design/spacing.dart';
 import '../../core/network/api_exception.dart';
 import '../../core/strings.dart';
@@ -80,7 +81,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   height: 76,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                      gradient: WexColors.gradBrand,
+                      gradient: Gradients.hero,
                       borderRadius: BorderRadius.circular(22),
                       boxShadow: const [
                         BoxShadow(

@@ -98,7 +98,7 @@ Future<void> _pump(WidgetTester t, Widget screen, String file, {double h = 1000}
       debugShowCheckedModeBanner: false,
       routerConfig: router,
       builder: (c, child) => DefaultTextStyle.merge(
-          style: const TextStyle(fontFamily: 'Tajawal'),
+          style: const TextStyle(fontFamily: 'IBMPlexSansArabic'),
           child: Directionality(textDirection: TextDirection.rtl, child: child!)),
     ),
   ));

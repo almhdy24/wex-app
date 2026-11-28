@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../design/colors.dart';
+import '../design/colors.g.dart';
 import '../strings.dart';
 import '../../features/cart/cart_controller.dart';
 import 'fly_to_cart.dart';
